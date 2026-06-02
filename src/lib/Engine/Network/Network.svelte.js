@@ -64,7 +64,7 @@ export default class {
     this.connected = true;
     this.connecting = false;
 
-    this.codec.knownEntities = {};
+    this.codec.knownEntities = [];
 
     this.sendEnterWorld(this.options.name, this.options.partyKey);
     this.sendPingIfNecessary();
@@ -120,6 +120,7 @@ export default class {
     this.sendPacket(4, {
       name: t,
       partyKey: e,
+      reconnectSecret: this.codec.reconnectSecret,
     });
   }
   sendInput(t) {

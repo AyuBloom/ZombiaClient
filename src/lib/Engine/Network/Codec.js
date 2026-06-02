@@ -5,293 +5,145 @@ export default class {
     this.game = game;
 
     this.currentTickNumber = 0;
-    this.knownEntities = {};
+    this.knownEntities = [];
 
     this.inSync = true;
     this.outOfSync = false;
 
     this.packetArr = [];
     this.packetCountLimit = 200;
+    this.reconnectSecret = "";
+
     this.modelProps = {
-      ArrowProjectile: {
-        name: "ArrowProjectile",
+      Projectile: {
+        name: "Projectile",
         index: 0,
-        props: ["position", "yaw"],
-        entityClass: "Projectile",
-      },
-      CannonProjectile: {
-        name: "CannonProjectile",
-        index: 1,
-        props: ["position", "yaw"],
-        entityClass: "Projectile",
-      },
-      DynamiteProjectile: {
-        name: "DynamiteProjectile",
-        index: 2,
-        props: ["position", "tier", "yaw"],
-        entityClass: "Projectile",
-      },
-      MageProjectile: {
-        name: "MageProjectile",
-        index: 3,
-        props: ["position", "yaw"],
-        entityClass: "Projectile",
-      },
-      RocketProjectile: {
-        name: "RocketProjectile",
-        index: 4,
-        props: ["position", "tier", "yaw"],
+        props: ["projectileKind", "position", "tier", "yaw"],
         entityClass: "Projectile",
       },
       ArrowTower: {
         name: "ArrowTower",
-        index: 5,
-        props: [
-          "aimingYaw",
-          "firingTick",
-          "health",
-          "lastDamagedTick",
-          "maxHealth",
-          "position",
-          "tier",
-        ],
+        index: 1,
+        props: ["aimingYaw", "firingTick", "health", "maxHealth", "position", "tier"],
         entityClass: "Building",
       },
       CannonTower: {
         name: "CannonTower",
-        index: 6,
-        props: [
-          "aimingYaw",
-          "firingTick",
-          "health",
-          "lastDamagedTick",
-          "maxHealth",
-          "position",
-          "tier",
-        ],
+        index: 2,
+        props: ["aimingYaw", "firingTick", "health", "maxHealth", "position", "tier"],
         entityClass: "Building",
       },
       LightningTower: {
         name: "LightningTower",
-        index: 7,
-        props: [
-          "firingTick",
-          "health",
-          "lastDamagedTick",
-          "maxHealth",
-          "position",
-          "targetBeams",
-          "tier",
-        ],
+        index: 3,
+        props: ["firingTick", "health", "maxHealth", "position", "tier"],
         entityClass: "Building",
       },
       MageTower: {
         name: "MageTower",
-        index: 8,
-        props: [
-          "aimingYaw",
-          "firingTick",
-          "health",
-          "lastDamagedTick",
-          "maxHealth",
-          "position",
-          "tier",
-        ],
+        index: 4,
+        props: ["aimingYaw", "firingTick", "health", "maxHealth", "position", "tier"],
         entityClass: "Building",
       },
       RocketTower: {
         name: "RocketTower",
-        index: 9,
-        props: [
-          "aimingYaw",
-          "firingTick",
-          "health",
-          "lastDamagedTick",
-          "maxHealth",
-          "position",
-          "tier",
-        ],
+        index: 5,
+        props: ["aimingYaw", "firingTick", "health", "maxHealth", "position", "tier"],
         entityClass: "Building",
       },
       SawTower: {
         name: "SawTower",
-        index: 10,
-        props: [
-          "firingTick",
-          "health",
-          "lastDamagedTick",
-          "maxHealth",
-          "position",
-          "tier",
-          "yaw",
-        ],
+        index: 6,
+        props: ["firingTick", "health", "maxHealth", "position", "tier", "yaw"],
         entityClass: "Building",
       },
       Wall: {
         name: "Wall",
-        index: 11,
-        props: ["health", "lastDamagedTick", "maxHealth", "position", "tier"],
+        index: 7,
+        props: ["health", "maxHealth", "position", "tier"],
         entityClass: "Building",
       },
       LargeWall: {
         name: "LargeWall",
-        index: 12,
-        props: ["health", "lastDamagedTick", "maxHealth", "position", "tier"],
+        index: 8,
+        props: ["health", "maxHealth", "position", "tier"],
         entityClass: "Building",
       },
       Door: {
         name: "Door",
-        index: 13,
-        props: ["health", "lastDamagedTick", "maxHealth", "partyId", "position", "tier"],
+        index: 9,
+        props: ["health", "maxHealth", "partyId", "position", "tier"],
         entityClass: "Building",
       },
       SpikeTrap: {
         name: "SpikeTrap",
-        index: 14,
-        props: ["lastDamagedTick", "partyId", "position", "tier"],
+        index: 10,
+        props: ["partyId", "position", "tier"],
         entityClass: "Building",
       },
       Drill: {
         name: "Drill",
-        index: 15,
-        props: ["health", "lastDamagedTick", "maxHealth", "position", "tier"],
+        index: 11,
+        props: ["health", "maxHealth", "position", "tier"],
         entityClass: "Building",
       },
       Harvester: {
         name: "Harvester",
-        index: 16,
-        props: [
-          "droneCount",
-          "health",
-          "lastDamagedTick",
-          "maxHealth",
-          "position",
-          "targetResourceUid",
-          "tier",
-          "yaw",
-        ],
+        index: 12,
+        props: ["droneCount", "health", "maxHealth", "position", "targetResourceUid", "tier", "yaw"],
         entityClass: "Building",
       },
       HarvesterDrone: {
         name: "HarvesterDrone",
-        index: 17,
-        props: [
-          "currentHarvestStage",
-          "health",
-          "lastDamagedTick",
-          "maxHealth",
-          "position",
-          "tier",
-          "yaw",
-        ],
+        index: 13,
+        props: ["currentHarvestStage", "health", "maxHealth", "position", "tier", "yaw"],
         entityClass: "Npc",
       },
       ResourcePickup: {
         name: "ResourcePickup",
-        index: 18,
+        index: 14,
         props: ["position", "resourceAmount", "resourcePickupType"],
         entityClass: "ResourcePickup",
       },
       Factory: {
         name: "Factory",
-        index: 19,
-        props: [
-          "aggroEnabled",
-          "health",
-          "lastDamagedTick",
-          "maxHealth",
-          "partyId",
-          "position",
-          "tier",
-          "warmingUp",
-        ],
+        index: 15,
+        props: ["aggroEnabled", "health", "maxHealth", "partyId", "position", "tier"],
         entityClass: "Building",
       },
       Player: {
         name: "Player",
-        index: 20,
-        privateProps: [
-          "aimingYaw",
-          "dead",
-          "firingTick",
-          "invulnerable",
-          "gold",
-          "health",
-          "lastDamagedTick",
-          "lastPlayerDamages",
-          "maxHealth",
-          "name",
-          "partyId",
-          "position",
-          "stone",
-          "tokens",
-          "wave",
-          "weaponName",
-          "weaponTier",
-          "wood",
-          "zombieShieldHealth",
-          "zombieShieldMaxHealth",
-        ],
-        publicProps: [
-          "aimingYaw",
-          "dead",
-          "firingTick",
-          "invulnerable",
-          "health",
-          "lastDamagedTick",
-          "maxHealth",
-          "name",
-          "position",
-          "weaponName",
-          "weaponTier",
-          "zombieShieldHealth",
-          "zombieShieldMaxHealth",
-        ],
+        index: 16,
+        privateProps: ["aimingYaw", "dead", "firingTick", "invulnerable", "gold", "health", "lastDamagedTick", "maxHealth", "name", "partyId", "position", "stone", "tokens", "wave", "weaponName", "weaponTier", "wood", "zombieShieldHealth", "zombieShieldMaxHealth"],
+        publicProps: ["aimingYaw", "dead", "firingTick", "invulnerable", "health", "lastDamagedTick", "maxHealth", "name", "position", "weaponName", "weaponTier", "zombieShieldHealth", "zombieShieldMaxHealth"],
         entityClass: "Player",
       },
-      Tree1: {
-        name: "Tree1",
-        index: 21,
-        props: ["aimingYaw", "hits", "position", "radius", "resourceType"],
-        entityClass: "Resource",
-      },
-      Tree2: {
-        name: "Tree2",
-        index: 22,
-        props: ["aimingYaw", "hits", "position", "radius", "resourceType"],
-        entityClass: "Resource",
-      },
-      Stone1: {
-        name: "Stone1",
-        index: 23,
-        props: ["aimingYaw", "hits", "position", "radius", "resourceType"],
-        entityClass: "Resource",
-      },
-      Stone2: {
-        name: "Stone2",
-        index: 24,
-        props: ["aimingYaw", "hits", "position", "radius", "resourceType"],
+      Resource: {
+        name: "Resource",
+        index: 17,
+        props: ["hits", "position", "radius", "resourceType", "resourceVariant", "yaw"],
         entityClass: "Resource",
       },
       Zombie: {
         name: "Zombie",
-        index: 25,
-        props: ["colour", "maxHealth", "position", "tier", "yaw"],
+        index: 18,
+        props: ["colour", "health", "maxHealth", "position", "tier", "yaw"],
         entityClass: "Zombie",
       },
       SpellIndicator: {
         name: "SpellIndicator",
-        index: 26,
+        index: 19,
         props: ["position", "radius", "spellType"],
         entityClass: "Spell",
       },
       Visualiser: {
         name: "Visualiser",
-        index: 27,
+        index: 20,
         props: ["position", "yaw"],
         entityClass: "Visualiser",
       },
     };
+
     this.propTypes = {
       aimingYaw: "Uint16",
       aggroEnabled: "Boolean",
@@ -302,15 +154,13 @@ export default class {
       experience: "Uint16",
       firingTick: "Uint32",
       hatName: "String",
-      health: "Uint16",
+      health: "Uint32",
       hits: "ArrayUint32",
-      targetBeams: "ArrayUint32",
-      lastPlayerDamages: "ArrayUint32",
       lastPetDamage: "Uint16",
       lastPetDamageTarget: "Uint16",
       lastPetDamageTick: "Uint32",
       lastDamagedTick: "Uint32",
-      maxHealth: "Uint16",
+      maxHealth: "Uint32",
       gold: "Uint32",
       model: "String",
       name: "String",
@@ -320,40 +170,184 @@ export default class {
       shortPosition: "Uint16",
       spellType: "String",
       radius: "Uint16",
-      resourceAmount: "Uint8",
+      resourceAmount: "Uint32",
       resourcePickupType: "Uint8",
       resourceType: "String",
-      score: "Uint32",
+      resourceVariant: "String",
       stone: "Uint32",
-      targetResourceUid: "Uint16",
-      tier: "Uint16",
+      targetResourceUid: "Uint32",
+      tier: "Uint8",
       tokens: "Uint32",
-      warmingUp: "Boolean",
       wave: "Uint32",
       weaponName: "String",
-      weaponTier: "Uint16",
+      weaponTier: "Uint8",
       wood: "Uint32",
-      yaw: "Varint32",
-      zombieShieldHealth: "Float",
-      zombieShieldMaxHealth: "Float",
+      yaw: "Uint16",
+      zombieShieldHealth: "Uint32",
+      zombieShieldMaxHealth: "Uint32",
       colour: "ZombieColour",
       scale: "Uint8",
       invulnerable: "Boolean",
+      projectileKind: "ProjectileKind",
     };
+
     this.propTypesArr = Object.keys(this.propTypes);
+    this.projectileKinds = ["Arrow", "Cannon", "Dynamite", "Mage", "Rocket"];
+
+    this.clientRpcIndexMap = {
+      PartyKey: {
+        partyKey: "String",
+      },
+      PartyBuilding: {
+        isArray: true,
+        dead: "Boolean",
+        tier: "Uint8",
+        type: "String",
+        uid: "Uint32",
+        x: "Uint32",
+        y: "Uint32",
+        yaw: "Uint16",
+      },
+      PartyRequest: {
+        name: "String",
+        uid: "Uint32",
+      },
+      PartyRequestCancelled: {
+        uid: "Uint32",
+      },
+      PartyRequestMet: {},
+      PartyMembersUpdated: {
+        isArray: true,
+        canPlace: "Boolean",
+        canSell: "Boolean",
+        name: "String",
+        uid: "Uint32",
+        isLeader: "Boolean",
+      },
+      UpdateParty: {
+        isArray: true,
+        isOpen: "Boolean",
+        partyId: "Uint32",
+        partyName: "String",
+        memberCount: "Uint8",
+        memberLimit: "Uint8",
+      },
+      UpdateLeaderboard: {
+        isArray: true,
+        uid: "Uint32",
+        name: "String",
+        score: "Uint64",
+        wave: "Uint64",
+        rank: "Uint8",
+      },
+      UpdateDayNightCycle: {
+        nightLength: "Uint32",
+        dayLength: "Uint32",
+      },
+      Respawned: {},
+      SetTool: {
+        isArray: true,
+        toolName: "String",
+        toolTier: "Uint8",
+      },
+      Dead: {
+        reason: "String",
+        wave: "Uint64",
+        score: "Uint64",
+        partyScore: "Uint64",
+      },
+      ToolInfo: {
+        json: "String",
+      },
+      BuildingInfo: {
+        json: "String",
+      },
+      SpellInfo: {
+        json: "String",
+      },
+      CastSpellResponse: {
+        name: "String",
+        cooldown: "Uint32",
+        iconCooldown: "Uint32",
+      },
+      ClearActiveSpell: {
+        name: "String",
+      },
+      EntityData: {
+        json: "String",
+      },
+      Failure: {
+        failure: "String",
+      },
+      ReceiveChatMessage: {
+        channel: "String",
+        name: "String",
+        message: "String",
+      },
+      DamageDealt: {
+        x: "Uint16",
+        y: "Uint16",
+        damage: "Int32",
+      },
+      EntityKilled: {
+        uid: "Uint32",
+        score: "OptionalUint32",
+      },
+      LightningZap: {
+        isArray: true,
+        x: "Uint16",
+        y: "Uint16",
+      },
+      SetTickRate: {
+        tickRate: "Float",
+        serverSpeed: "Uint8",
+      },
+      AdminCommandResponse: {
+        json: "String",
+      },
+    };
+
+    this.rpcIdToName = [
+      "PartyKey",
+      "PartyBuilding",
+      "PartyRequest",
+      "PartyRequestCancelled",
+      "PartyRequestMet",
+      "PartyMembersUpdated",
+      "UpdateParty",
+      "UpdateLeaderboard",
+      "Respawned",
+      "SetTool",
+      "Dead",
+      "ToolInfo",
+      "BuildingInfo",
+      "SpellInfo",
+      "CastSpellResponse",
+      "ClearActiveSpell",
+      "EntityData",
+      "Failure",
+      "ReceiveChatMessage",
+      "DamageDealt",
+      "LightningZap",
+      "SetTickRate",
+      "EntityKilled",
+      "AdminCommandResponse",
+    ];
   }
+
   setSync(sync, totalSync = false) {
     if (sync != this.inSync) {
       this.inSync = sync;
       if (this.inSync) this.sync(totalSync);
     }
   }
+
   sync(outOfSync = false) {
     if (1 == this.game.network.connected) {
       if (this.packetArr.length >= this.packetCountLimit || outOfSync) {
         console.log("Tab was hidden for too long. Reporting as desynced.");
         this.packetArr.length = 0;
-        this.knownEntities = {};
+        this.knownEntities = [];
 
         this.game.renderer.onServerDesync();
         this.game.renderer.world.onServerDesync();
@@ -375,6 +369,7 @@ export default class {
       }
     }
   }
+
   encode(t, e) {
     const r = new ByteBuffer(100, true);
     r.writeUint8(t);
@@ -389,7 +384,6 @@ export default class {
         this.encodeRpc(r, e);
         break;
       case 7:
-        // sometimes the tab visibility doesnt return a callback on onvisibilitychange, so we would prefer to check every ping also.
         this.setSync("visible" == document.visibilityState);
         break;
     }
@@ -397,14 +391,17 @@ export default class {
     r.compact();
     return r.toArrayBuffer(false);
   }
+
   encodeEnterWorld(t, e) {
     t.writeVString(e.name);
     t.writeVString(e.partyKey);
+    t.writeVString(e.reconnectSecret || "");
   }
+
   encodeInput(t, e) {
     const i = {
-      x: "Uint16",
-      y: "Uint16",
+      x: "Int16",
+      y: "Int16",
       mouseMoved: "Uint16",
       mouseDown: "Boolean",
       space: "Boolean",
@@ -414,10 +411,14 @@ export default class {
       right: "Boolean",
     };
     t.writeUint8(Object.keys(e).length);
-    for (let s in e)
-      switch ((t.writeUint8(Object.keys(i).indexOf(s)), i[s])) {
+    for (let s in e) {
+      t.writeUint8(Object.keys(i).indexOf(s));
+      switch (i[s]) {
         case "Uint16":
           t.writeUint16(e[s]);
+          break;
+        case "Int16":
+          t.writeInt16(e[s]);
           break;
         case "Boolean":
           t.writeUint8(+e[s]);
@@ -425,7 +426,9 @@ export default class {
         default:
           throw new Error(`Unsupported input attribute type: ${s}`);
       }
+    }
   }
+
   encodeRpc(t, e) {
     const i = {
       OutOfSync: {},
@@ -442,11 +445,11 @@ export default class {
         uids: "ArrayUint32",
       },
       UpdateHarvesterTarget: {
-        harvesterUid: "Uint16",
-        targetUid: "Uint16",
+        harvesterUid: "Uint32",
+        targetUid: "Uint32",
       },
       BuyHarvesterDrone: {
-        harvesterUid: "Uint16",
+        harvesterUid: "Uint32",
       },
       SendChatMessage: {
         message: "String",
@@ -504,8 +507,8 @@ export default class {
     t.writeUint8(Object.keys(i).indexOf(e.response.name));
     const s = i[e.response.name];
     for (let i in s) {
-      const n = s[i],
-        r = e.response[i];
+      const n = s[i];
+      const r = e.response[i];
       switch (n) {
         case "Uint32":
           t.writeUint32(r);
@@ -520,17 +523,21 @@ export default class {
           t.writeVString(r);
           break;
         case "Vector2":
-          (t.writeVarint32(Math.floor(100 * r.x)),
-            t.writeVarint32(Math.floor(100 * r.y)));
+          t.writeVarint32(Math.floor(r.x * 100));
+          t.writeVarint32(Math.floor(r.y * 100));
           break;
         case "ArrayVector2":
           t.writeInt32(r.length);
-          for (let e = 0; e < r.length; e++)
-            (t.writeInt32(100 * r[e].x), t.writeInt32(100 * r[e].y));
+          for (let e = 0; e < r.length; e++) {
+            t.writeInt32(r[e].x * 100);
+            t.writeInt32(r[e].y * 100);
+          }
           break;
         case "ArrayUint32":
           t.writeInt32(r.length);
-          for (let e = 0; e < r.length; e++) t.writeInt32(r[e]);
+          for (let e = 0; e < r.length; e++) {
+            t.writeInt32(r[e]);
+          }
           break;
         case "Uint16":
           t.writeUint16(r);
@@ -557,16 +564,19 @@ export default class {
           t.writeUint8(+r);
           break;
         default:
-          throw new Error(`Unsupported rpc type: ${attributeType}`);
+          throw new Error(`Unsupported rpc type: ${n}`);
       }
     }
   }
+
   decode(t) {
     let e = ByteBuffer.wrap(t);
     e.littleEndian = true;
     const i = e.readUint8();
     if (0 == i && !this.inSync) {
-      this.packetArr.length < this.packetCountLimit && this.packetArr.push(t);
+      if (this.packetArr.length < this.packetCountLimit) {
+        this.packetArr.push(t);
+      }
       e = null;
       return {};
     }
@@ -577,7 +587,9 @@ export default class {
         break;
       case 0:
         s = this.decodeEntityUpdate(e);
-        if (1 == s.unsynced) return {};
+        if (s.unsynced === true) {
+          return {};
+        }
         break;
       case 9:
         s = this.decodeRpc(e);
@@ -585,116 +597,109 @@ export default class {
       case 7:
         s = this.decodePing(e);
     }
-    return ((s.opcode = i), s);
+    s.opcode = i;
+    return s;
   }
+
   decodeEnterWorld(t) {
-    return t.readUint8()
-      ? {
-          allowed: true,
-          name: t.readVString(),
-          uid: t.readUint16(),
-          tickRate: t.readUint16(),
-          startingTick: t.readUint32(),
-          x: t.readUint16(),
-          y: t.readUint16(),
-          minimumBuildDistanceFromWall: t.readUint8(),
-          maxFactoryBuildDistance: t.readUint8(),
-          maxPlayerBuildDistance: t.readUint8(),
-          maxPlayerPartyLimit: t.readUint8(),
-        }
-      : {
-          allowed: false,
-          reason: t.readVString(),
-        };
+    if (t.readUint8()) {
+      this.reconnectSecret = t.readVString();
+      return {
+        allowed: true,
+        name: t.readVString(),
+        uid: t.readUint32(),
+        startingTick: t.readUint32(),
+        x: t.readUint16(),
+        y: t.readUint16(),
+        dayLengthMs: t.readUint32(),
+        nightLengthMs: t.readUint32(),
+        minimumBuildDistanceFromWall: t.readUint8(),
+        maxFactoryBuildDistance: t.readUint8(),
+        maxPlayerBuildDistance: t.readUint8(),
+      };
+    } else {
+      return {
+        allowed: false,
+        reason: t.readVString(),
+      };
+    }
   }
+
   decodeEntityUpdate(t) {
     let e = ++this.currentTickNumber;
     const i = !!t.readUint8();
-    if (1 == i)
-      ((e = t.readUint32()),
-        (this.currentTickNumber = e),
-        (this.outOfSync = false),
-        console.log("Server has resynced, decoding as normal"));
-    else if (0 == i && 1 == this.outOfSync)
+    if (i === true) {
+      e = t.readUint32();
+      this.currentTickNumber = e;
+      this.outOfSync = false;
+      console.log("Server has resynced, decoding as normal");
+    } else if (i === false && this.outOfSync === true) {
       return {
         unsynced: true,
       };
-    const s = t.readVarint32();
-    for (let e = 0; e < s; e++) {
-      let e = t.readUint16();
-      delete this.knownEntities[e];
     }
-    const n = t.readVarint32(),
-      r = {};
+    let s = {};
+    for (let t of this.knownEntities) {
+      s[t] = true;
+    }
+    const n = t.readVarint32();
     for (let e = 0; e < n; e++) {
-      const e = t.readUint16(),
-        i = Object.values(this.modelProps)[t.readUint8()];
-      if (
-        ((r[e] = {
-          uid: e,
-          model: i.name,
-          entityClass: i.entityClass,
-        }),
-        e == this.game.renderer.world.localPlayer)
-      )
-        for (const s of i.privateProps) {
-          const i = this.propTypes[s];
-          this.decodeEntityAttributes(r, e, t, s, i);
-        }
-      else
-        for (const s of i.props || i.publicProps) {
-          const i = this.propTypes[s];
-          this.decodeEntityAttributes(r, e, t, s, i);
-        }
+      delete s[t.readUint32()];
     }
-    let a = [],
-      o = t.readVarint32(),
-      h = Object.keys(this.knownEntities);
-    for (let e = 0; e < o; e++) {
-      let i = t.readUint8();
-      for (let t = 0; t < 8; t++) {
-        let s = 1 & i;
-        ((i >>= 1),
-          0 === s && void 0 !== h[8 * e + t]
-            ? a.push(parseInt(h[8 * e + t]))
-            : 1 === s && (r[parseInt(h[8 * e + t])] = !0));
+    const r = t.readVarint32();
+    for (let e = 0; e < r; e++) {
+      const e = t.readUint32();
+      const i = Object.values(this.modelProps)[t.readUint8()];
+      s[e] = {
+        uid: e,
+        model: i.name,
+        entityClass: i.entityClass,
+      };
+      const n =
+        e === this.game.renderer.world.localPlayer
+          ? i.privateProps
+          : i.props || i.publicProps;
+      for (const i of n) {
+        const n = this.propTypes[i];
+        this.decodeEntityAttributes(s, e, t, i, n);
       }
     }
-    a.sort((t, e) => t - e);
-    for (const e of a) {
-      r[e] = {};
+    const a = t.readVarint32();
+    for (let e = 0; e < a; e++) {
+      const e = t.readUint32();
+      if (s[e] == null || s[e] == 1) {
+        s[e] = {};
+      }
       const i = t.readUint8();
-      for (let s = 0; s < i; s++) {
-        const i = this.propTypesArr[t.readUint8()],
-          s = this.propTypes[i];
-        this.decodeEntityAttributes(r, e, t, i, s);
+      for (let n = 0; n < i; n++) {
+        const i = t.readUint8();
+        const n = this.propTypesArr[i];
+        const r = this.propTypes[n];
+        this.decodeEntityAttributes(s, e, t, n, r);
       }
     }
-    const l = t.readUint16() / 100;
-    return (
-      (this.knownEntities = r),
-      {
-        tick: e,
-        entities: r,
-        averageServerFrameTime: l,
-        byteSize: t.capacity(),
-      }
-    );
-  }
-  splitUint16(t) {
+    let o;
+    this.knownEntities = Object.keys(s);
+    if (this.game.ui.components?.uiDevHud?.devEnabled === true) { // never has one, but ig
+      o = t.readUint16() / 100;
+    }
     return {
-      firstValue: (t >> 8) & 255,
-      secondValue: 255 & t,
+      tick: e,
+      entities: s,
+      averageServerFrameTime: o,
+      byteSize: t.capacity(),
     };
   }
+
   decodeEntityAttributes(t, e, i, s, n) {
-    if ("shortPosition" == s) {
-      const s = i.readUint16(),
-        n = this.splitUint16(s);
-      return void (t[e].shortPosition = {
-        x: n.firstValue - 128,
-        y: n.secondValue - 128,
-      });
+    if (s == "shortPosition") {
+      const s = i.readUint8() - 128;
+      const n = i.readUint8() - 128;
+      t[e].shortPosition = {
+        x: s,
+        y: n,
+      };
+      return;
     }
     let r = ["Grey", "Green", "Blue", "Red"];
     switch (n) {
@@ -716,6 +721,9 @@ export default class {
       case "ZombieColour":
         t[e][s] = r[i.readUint8()];
         break;
+      case "ProjectileKind":
+        t[e][s] = this.projectileKinds[i.readUint8()];
+        break;
       case "Vector2":
         t[e][s] = {
           x: i.readUint16(),
@@ -724,11 +732,11 @@ export default class {
         break;
       case "ArrayVector2":
         {
-          let n = i.readInt32(),
-            r = [];
+          let n = i.readInt32();
+          let r = [];
           for (var a = 0; a < n; a++) {
-            var o = i.readInt32() / 100,
-              h = i.readInt32() / 100;
+            var o = i.readInt32() / 100;
+            var h = i.readInt32() / 100;
             r.push({
               x: o,
               y: h,
@@ -739,8 +747,8 @@ export default class {
         break;
       case "ArrayUint32":
         {
-          let n = i.readUint16(),
-            r = [];
+          let n = i.readUint16();
+          let r = [];
           for (a = 0; a < n; a++) {
             var l = i.readUint32();
             r.push(l);
@@ -776,113 +784,25 @@ export default class {
         throw new Error(`Unsupported attribute type: ${s}`);
     }
   }
+
   decodeRpc(t) {
-    const e = {
-        PartyKey: {
-          partyKey: "String",
-        },
-        PartyBuilding: {
-          isArray: !0,
-          dead: "Boolean",
-          tier: "Uint16",
-          type: "String",
-          uid: "Uint32",
-          x: "Uint32",
-          y: "Uint32",
-          yaw: "Uint16",
-        },
-        PartyRequest: {
-          name: "String",
-          uid: "Uint32",
-        },
-        PartyRequestCancelled: {
-          uid: "Uint32",
-        },
-        PartyRequestMet: {},
-        PartyMembersUpdated: {
-          isArray: !0,
-          canPlace: "Boolean",
-          canSell: "Boolean",
-          name: "String",
-          uid: "Uint32",
-          isLeader: "Boolean",
-        },
-        UpdateParty: {
-          isArray: !0,
-          isOpen: "Boolean",
-          partyId: "Uint32",
-          partyName: "String",
-          memberCount: "Uint8",
-          memberLimit: "Uint8",
-        },
-        UpdateLeaderboard: {
-          isArray: !0,
-          uid: "Uint32",
-          name: "String",
-          score: "Uint64",
-          wave: "Uint64",
-          rank: "Uint8",
-        },
-        UpdateDayNightCycle: {
-          nightLength: "Uint32",
-          dayLength: "Uint32",
-        },
-        Respawned: {},
-        SetTool: {
-          isArray: !0,
-          toolName: "String",
-          toolTier: "Uint8",
-        },
-        Dead: {
-          reason: "String",
-          wave: "Uint64",
-          score: "Uint64",
-          partyScore: "Uint64",
-        },
-        ToolInfo: {
-          json: "String",
-        },
-        BuildingInfo: {
-          json: "String",
-        },
-        SpellInfo: {
-          json: "String",
-        },
-        CastSpellResponse: {
-          name: "String",
-          cooldown: "Uint32",
-          iconCooldown: "Uint32",
-        },
-        ClearActiveSpell: {
-          name: "String",
-        },
-        EntityData: {
-          json: "String",
-        },
-        Failure: {
-          failure: "String",
-        },
-        ReceiveChatMessage: {
-          channel: "String",
-          name: "String",
-          message: "String",
-        },
-      },
-      i = Object.keys(e)[t.readUint8()],
-      s = e[i],
-      n = {
-        name: i,
-        response: {},
-      };
-    if (!0 === s.isArray) {
-      const e = [],
-        i = t.readUint16();
-      for (let n = 0; n < i; n++) {
-        let i = {};
-        for (let e in s) {
-          if ("isArray" == e) continue;
+    const e = this.rpcIdToName[t.readUint8()];
+    const i = this.clientRpcIndexMap[e];
+    const s = {
+      name: e,
+      response: {},
+    };
+    if (i.isArray === true) {
+      const e = [];
+      const n = t.readUint16();
+      for (let s = 0; s < n; s++) {
+        let s = {};
+        for (let e in i) {
+          if (e == "isArray") {
+            continue;
+          }
           let n;
-          switch (s[e]) {
+          switch (i[e]) {
             case "Uint8":
               n = t.readUint8();
               break;
@@ -891,6 +811,12 @@ export default class {
               break;
             case "Uint32":
               n = t.readUint32();
+              break;
+            case "OptionalUint32":
+              n = t.readUint8() ? t.readUint32() : null;
+              break;
+            case "Float":
+              n = t.readFloat();
               break;
             case "Uint64":
               n = t.readUint64();
@@ -902,43 +828,57 @@ export default class {
               n = !!t.readUint8();
               break;
             default:
-              throw new Error(`Unknown RPC type: ${JSON.stringify(s)}`);
+              throw new Error(`Unknown RPC type: ${JSON.stringify(i)}`);
           }
-          i[e] = n;
+          s[e] = n;
         }
-        e.push(i);
+        e.push(s);
       }
-      n.response = e;
-    } else
-      for (let e in s) {
-        if ("isArray" == e) continue;
-        let i;
-        switch (s[e]) {
+      s.response = e;
+    } else {
+      for (let e in i) {
+        if (e == "isArray") {
+          continue;
+        }
+        const n = i[e];
+        let r;
+        switch (n) {
           case "Uint8":
-            i = t.readUint8();
+            r = t.readUint8();
             break;
           case "Uint16":
-            i = t.readUint16();
+            r = t.readUint16();
             break;
           case "Uint32":
-            i = t.readUint32();
+            r = t.readUint32();
+            break;
+          case "OptionalUint32":
+            r = t.readUint8() ? t.readUint32() : null;
+            break;
+          case "Float":
+            r = t.readFloat();
             break;
           case "Uint64":
-            i = t.readUint64();
+            r = t.readUint64();
+            break;
+          case "Int32":
+            r = t.readInt32();
             break;
           case "String":
-            i = t.readVString();
+            r = t.readVString();
             break;
           case "Boolean":
-            i = !!t.readUint8();
+            r = !!t.readUint8();
             break;
           default:
-            throw new Error(`Unknown RPC type: ${JSON.stringify(s)}`);
+            throw new Error(`Unknown RPC type: ${n}`);
         }
-        n.response[e] = i;
+        s.response[e] = r;
       }
-    return n;
+    }
+    return s;
   }
+
   decodePing(t) {
     return {};
   }

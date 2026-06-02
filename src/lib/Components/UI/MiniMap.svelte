@@ -85,8 +85,8 @@
 >
     {#each Object.values(playerData) as player}
         <div
-            class="absolute w-1 h-1 -mt-[0.125rem] -ml-[0.125rem] rounded-full z-2"
-            style="background: {COLOR_BY_INDEX[player.index]};display: {player.shouldShow
+            class="absolute w-1 h-1 -mt-0.5 -ml-0.5 rounded-full z-2"
+            style="background: {COLOR_BY_INDEX[player.index] || "#eee"};display: {player.shouldShow
                 ? 'block'
                 : 'none'}; left: {player.position.x}%; top: {player.position.y}%;"
         ></div>

@@ -80,8 +80,9 @@
         )
             return;
 
-        for (let e = 0; e < t.lastPlayerDamages.length; e += 2) {
-            showDamage(t.lastPlayerDamages[e], t.lastPlayerDamages[e + 1]);
+        const lastPlayerDamages = t.lastPlayerDamages || [];
+        for (let e = 0; e < lastPlayerDamages.length; e += 2) {
+            showDamage(lastPlayerDamages[e], lastPlayerDamages[e + 1]);
         }
 
         const r = ["gold", "wood", "stone", "tokens"];

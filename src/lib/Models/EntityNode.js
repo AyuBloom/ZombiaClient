@@ -16,6 +16,8 @@ export default class extends Node {
         y: 0,
       },
       yaw: 0,
+      lastPlayerDamages: [],
+      hits: [],
     };
     this.setTargetTick(t);
     this.fromTick = this.targetTick;
@@ -40,10 +42,12 @@ export default class extends Node {
     return this.fromTick;
   }
   setTargetTick(t) {
-    void 0 !== this.targetTick.lastPlayerDamages &&
-      null == t.lastPlayerDamages &&
-      (t.lastPlayerDamages = []);
-    void 0 !== this.targetTick.hits && null == t.hits && (t.hits = []);
+    if (null == t.lastPlayerDamages) {
+      t.lastPlayerDamages = [];
+    }
+    if (null == t.hits) {
+      t.hits = [];
+    }
     this.addMissingTickFields(t, this.targetTick);
     if (void 0 !== t.shortPosition) {
       t.position = {
@@ -123,7 +127,12 @@ export default class extends Node {
             `Model ${t} could not be found.\n${JSON.stringify(this.targetTick)}`,
           );
       }
-    if (!EntityModels[e]) return;
+    if ("Projectile" == t && "Dynamite" == this.targetTick.projectileKind) {
+      e = "DynamiteProjectile";
+    }
+    if ("Rocket" == this.targetTick.projectileKind) {
+      e = "RocketProjectile";
+    }
     this.currentModel = new EntityModels[e](this.game, this.targetTick);
     this.currentModel.modelName = e;
     this.currentModel.setParent(this);

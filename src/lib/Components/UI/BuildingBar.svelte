@@ -10,7 +10,7 @@
         buildings = [];
         for (const buildingData of Object.values(t)) {
             buildings.push(buildingData.name);
-            if (void 0 !== buildingData.hotkey) {
+            if (null !== buildingData.hotkey) {
                 game.eventEmitter.on(
                     `${buildingData.hotkey.toString().charCodeAt(0)}Up`,
                     () => {

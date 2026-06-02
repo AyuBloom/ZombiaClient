@@ -1,6 +1,8 @@
 <script>
     let { game } = $props();
 
+    let dayLengthMs = 0;
+    let nightLengthMs = 0;
     let dayLength = 0;
     let nightLength = 0;
     let cycleLength = 0;
@@ -13,13 +15,29 @@
         cycleLength = dayLength + nightLength;
     });
 
+    game.eventEmitter.on("EnterWorldResponse", (t) => {
+        if (t.allowed) {
+            dayLengthMs = t.dayLengthMs;
+            nightLengthMs = t.nightLengthMs;
+        }
+    });
+
     game.eventEmitter.on("RendererUpdated", () => {
+        const msPerTick = game.renderer.replicator.msPerTick;
+        if (msPerTick && dayLengthMs && nightLengthMs) {
+            dayLength = dayLengthMs / msPerTick;
+            nightLength = nightLengthMs / msPerTick;
+            cycleLength = dayLength + nightLength;
+        }
+
+        if (null == cycleLength || cycleLength === 0) return;
+
         const t = game.renderer.replicator.getTickIndex();
         let e = 0,
             r = 0,
             n = 0;
 
-        1 == t % cycleLength < dayLength
+        t % cycleLength < dayLength
             ? ((e = 1 - (dayLength - (t % cycleLength)) / dayLength),
               (n = e < 0.1 ? 0.5 * (1 - e / 0.1) : e > 0.8 ? ((e - 0.8) / 0.2) * 0.5 : 0))
             : ((e = 1),

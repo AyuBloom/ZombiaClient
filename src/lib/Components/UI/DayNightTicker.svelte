@@ -4,6 +4,8 @@
 
     let TICKER_WIDTH = 130;
 
+    let dayLengthMs = 0;
+    let nightLengthMs = 0;
     let dayLength = 0;
     let nightLength = 0;
     let cycleLength = 0;
@@ -27,8 +29,22 @@
         cycleLength = dayLength + nightLength;
     });
 
+    game.eventEmitter.on("EnterWorldResponse", (t) => {
+        if (t.allowed) {
+            dayLengthMs = t.dayLengthMs;
+            nightLengthMs = t.nightLengthMs;
+        }
+    });
+
     game.eventEmitter.on("RendererUpdated", () => {
-        if (null == cycleLength) return;
+        const msPerTick = game.renderer.replicator.msPerTick;
+        if (msPerTick && dayLengthMs && nightLengthMs) {
+            dayLength = dayLengthMs / msPerTick;
+            nightLength = nightLengthMs / msPerTick;
+            cycleLength = dayLength + nightLength;
+        }
+
+        if (null == cycleLength || cycleLength === 0) return;
         const t = game.renderer.replicator.getTickIndex(),
             e = cycleLength - (t % cycleLength),
             r = t % cycleLength < dayLength;

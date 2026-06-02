@@ -613,7 +613,7 @@
             {#if buildingId != "Factory"}
                 <button
                     onclick={sellBuilding}
-                    class="flex-1 bg-accent-red after:content-['(T)']"
+                    class="{(game.ui.playerPartyCanSell ? '' : 'disabled')} flex-1 bg-accent-red after:content-['(T)']"
                     >Sell {shiftDown ? "All" : ""} ({@html game.util.createResourceRefundString(
                         buildingData[buildingId],
                         buildingTier,

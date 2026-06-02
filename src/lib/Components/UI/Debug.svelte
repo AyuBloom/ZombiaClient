@@ -4,7 +4,7 @@
     let { game } = $props();
 
     let fps = $state(0);
-    let frameTime = $state(0);
+    let frameTime = $state(undefined);
     let lastTick = Date.now();
     let msSinceLastTick = $state(0);
     let isWebGL = $state(null);
@@ -28,9 +28,15 @@
 </script>
 
 <div class="absolute lg:bottom-28 bottom-24 left-2 text-white">
-    <p class={frameTime > 50 ? "overloaded" : frameTime > 30 ? "stressed" : ""}>
-        {game.network.ping}ms / {frameTime}ms / {Math.round(1000 / msSinceLastTick)} TPS
-    </p>
+    {#if frameTime !== undefined}
+        <p class={frameTime > 50 ? "overloaded" : frameTime > 30 ? "stressed" : ""}>
+            {game.network.ping}ms / {frameTime}ms / {Math.round(1000 / msSinceLastTick)} TPS
+        </p>
+    {:else}
+        <p>
+            {game.network.ping}ms / {Math.round(1000 / msSinceLastTick)} TPS
+        </p>
+    {/if}
     {#if !isMobile.any}
         <p>
             {Math.round(fps)} FPS - {isWebGL ? "WebGL" : isWebGPU ? "WebGPU" : "Canvas"}

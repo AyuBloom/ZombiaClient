@@ -6,7 +6,6 @@ export default class {
     this.hasBoundKeys = false;
     this.mouseDown = false;
     this.shiftDown = false;
-    this.inputsLocked = false;
   }
   init() {
     this.game.eventEmitter.on(
@@ -14,14 +13,7 @@ export default class {
       this.onEnterWorld.bind(this),
     );
   }
-  /*
-    toggleInputLock() {
-        this.game.network.connected && (this.inputsLocked = !this.inputsLocked,
-        this.game.ui.components.uiInputLock.toggle(this.inputsLocked))
-    }
-    */
   onEnterWorld() {
-    this.inputsLocked = false;
     if (!this.hasBoundKeys) {
       this.hasBoundKeys = true;
 
@@ -33,10 +25,6 @@ export default class {
     }
   }
   sendInputPacket(t, e) {
-    /*
-        if (1 == this.inputsLocked && 71 !== e.which)
-            return void dr.ui.components.uiInputLock.alert();
-            */
     let r = {};
     for (let e of Object.keys(t))
       if (void 0 === this.movementPackets[e])
@@ -154,10 +142,6 @@ export default class {
       case 16:
         this.shiftDown = false;
         break;
-      /*
-        case 71:
-            this.toggleInputLock()
-            */
     }
     this.game.eventEmitter.emit(`${t.which}Up`, t);
   }
@@ -204,22 +188,20 @@ export default class {
     });
   }
   onMouseUp(t) {
-    if (1 != this.inputsLocked) {
-      if (3 == t.which || 2 == t.button) {
-        this.rightMouseDown = false;
-        return void this.game.eventEmitter.emit("rightMouseUp", t);
-      }
-      false == this.game.ui.castingSpell &&
-        this.sendInputPacket(
-          {
-            mouseDown: false,
-          },
-          t,
-        );
-      this.mouseDown = false;
-      this.game.eventEmitter.emit("mouseUp", {
-        event: t,
-      });
+    if (3 == t.which || 2 == t.button) {
+      this.rightMouseDown = false;
+      return void this.game.eventEmitter.emit("rightMouseUp", t);
     }
+    false == this.game.ui.castingSpell &&
+      this.sendInputPacket(
+        {
+          mouseDown: false,
+        },
+        t,
+      );
+    this.mouseDown = false;
+    this.game.eventEmitter.emit("mouseUp", {
+      event: t,
+    });
   }
 }

@@ -34,6 +34,10 @@ export default class {
     );
     this.game.eventEmitter.on("EntityUpdate", this.onEntityUpdate.bind(this));
     this.game.eventEmitter.on("RendererUpdated", this.onTick.bind(this));
+    this.game.eventEmitter.on(
+      "SetTickRateRpcReceived",
+      this.onSetTickRate.bind(this),
+    );
   }
   setTargetTickUpdatedCallback(t) {
     this.tickUpdatedCallback = t;
@@ -142,17 +146,20 @@ export default class {
     }
   }
   onEnterWorld(t) {
-    t.allowed &&
-      ((this.msPerTick = t.tickRate),
-      (this.msInThisTick = 0),
-      (this.shiftedGameTime = 0),
-      (this.serverTime = 0),
-      (this.receivedFirstTick = !1),
-      (this.msElapsed = 0),
-      (this.lastMsElapsed = 0),
-      (this.startTime = null),
-      (this.startShiftedGameTime = 0),
-      (this.interpolating = !1));
+    if (t.allowed) {
+      this.msInThisTick = 0;
+      this.shiftedGameTime = 0;
+      this.serverTime = 0;
+      this.receivedFirstTick = false;
+      this.msElapsed = 0;
+      this.lastMsElapsed = 0;
+      this.startTime = null;
+      this.startShiftedGameTime = 0;
+      this.interpolating = false;
+    }
+  }
+  onSetTickRate(t) {
+    this.msPerTick = t.tickRate;
   }
   checkRendererPaused() {
     this.lastShiftedGameTime == this.shiftedGameTime

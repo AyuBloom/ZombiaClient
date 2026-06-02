@@ -20,10 +20,6 @@
     });
 
     $effect(() => {
-      console.log(failures);
-    })
-
-    $effect(() => {
         if (game.ui.popup !== undefined) {
             const key = game.ui.popup.message;
 

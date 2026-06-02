@@ -22,7 +22,7 @@ export default {
           fontSize: 24,
           strokeWidth: 6,
         })),
-        this.nameEntity.setAnchor(0.4, 0.45),
+        this.nameEntity.setAnchor(0.5, 0.45),
         this.nameEntity.setPivotPoint(0, 70),
         this.nameEntity.setColor(220, 220, 220),
         this.nameEntity.setFontWeight("bold"),
@@ -46,7 +46,6 @@ export default {
       if (e) {
         if (r.isLocal()) {
           if (true !== r.getTargetTick().dead) {
-            // 0 == this.game.network.inputPacketManager.inputsLocked &&
             r.getTargetTick().aimingYaw = r.getFromTick().aimingYaw =
               this.game.inputPacketManager.getLastSentYaw();
           }
@@ -248,15 +247,15 @@ export default {
       super(game);
       this.base = new SpriteNode(
         this.game,
-        `./static/images/Map/${t.model}.svg`,
+        `./static/images/Map/${t.resourceVariant}.svg`,
       );
       this.addAttachment(this.base, 1);
     }
     update(t, e) {
       (e &&
         (void 0 !== e.hits && this.updateHit(e),
-        Math.round(this.base.getRotation()) !== e.aimingYaw &&
-          this.base.setRotation(e.aimingYaw)),
+        Math.round(this.base.getRotation()) !== e.yaw &&
+          this.base.setRotation(e.yaw)),
         super.update(t, e));
     }
     updateHit(t) {
@@ -268,10 +267,11 @@ export default {
           s = this.game.renderer.replicator.getMsSinceTick(i);
         if (s >= 250) continue;
         const a = Math.min(s / 250, 1),
-          c = Math.sin((o * Math.PI) / 180),
-          l = -1 * Math.cos((o * Math.PI) / 180);
-        ((e += 10 * c * Math.sin(a * Math.PI)),
-          (r += 10 * l * Math.sin(a * Math.PI)));
+          c = ((o - this.base.getRotation()) * Math.PI) / 180,
+          l = Math.sin(c),
+          d = -1 * Math.cos(c);
+        ((e += 10 * l * Math.sin(a * Math.PI)),
+          (r += 10 * d * Math.sin(a * Math.PI)));
       }
       const n = Math.sqrt(e * e + r * r);
       (n > 10 && ((e /= n), (r /= n), (e *= 10), (r *= 10)),
@@ -368,7 +368,7 @@ export default {
       super(game);
       this.base = new SpriteNode(
         this.game,
-        `./static/images/Entity/Projectile/${t.model}.svg`,
+        `./static/images/Entity/Projectile/${t.projectileKind}Projectile.svg`,
       );
       this.addAttachment(this.base);
 
@@ -430,22 +430,25 @@ export default {
       this.updateModel();
     }
     update(t, e) {
-      e &&
-        (this.updateModel(e.tier),
-        this.updateHealthBar(e),
-        void 0 !== e.currentHarvestStage &&
-          this.updateHarvestStage(e.currentHarvestStage));
+      if (e) {
+        this.updateModel(e.tier);
+        this.updateHealthBar(e);
+        if (void 0 !== e.currentHarvestStage) {
+          this.updateHarvestStage(e.currentHarvestStage);
+        }
+      }
       super.update(t, e);
     }
     updateHarvestStage(t) {
-      t != this.currentHarvestStage &&
-        ((this.currentHarvestStage = t),
-        this.removeAttachment(this.stageIndicator),
-        (this.stageIndicator = new SpriteNode(
+      if (t != this.currentHarvestStage) {
+        this.currentHarvestStage = t;
+        this.removeAttachment(this.stageIndicator);
+        this.stageIndicator = new SpriteNode(
           this.game,
           `./static/images/Entity/Harvester/HarvesterDrone${this.stageColours[t]}.svg`,
-        )),
-        this.addAttachment(this.stageIndicator, 3));
+        );
+        this.addAttachment(this.stageIndicator, 3);
+      }
     }
     updateModel(t = 1) {
       if (t !== this.currentTier) {
@@ -455,11 +458,11 @@ export default {
           ![1, 2, 3, 4, 5, 6, 7, 8].includes(t))
         )
           throw new Error(`Unknown tier encountered for HarvesterDrone: ${t}`);
-        ((this.base = new SpriteNode(
+        this.base = new SpriteNode(
           this.game,
           `./static/images/Entity/Harvester/HarvesterDroneTier${t}.svg`,
-        )),
-          this.addAttachment(this.base, 2));
+        );
+        this.addAttachment(this.base, 2);
       }
     }
     updateHealthBar(t) {
@@ -556,7 +559,7 @@ export default {
             color: 16777215,
             alpha: 0.1,
           }),
-          (r += (n / 100) * i),
+          (r += (n / 200) * i),
           r >= n &&
             (this.game.renderer.groundLayer.removeAttachment(t),
             this.game.renderer.renderingFilters.splice(
@@ -647,10 +650,11 @@ export default {
       this.updateModel();
     }
     update(t, e) {
-      e &&
-        (this.updateModel(e.tier),
-        this.updateHealthBar(e),
-        this.updateVisibility(e));
+      if (e) {
+        this.updateModel(e.tier);
+        this.updateHealthBar(e);
+        this.updateVisibility(e);
+      }
       super.update(t, e);
     }
     updateModel(t = 1) {
@@ -678,7 +682,7 @@ export default {
     }
   },
   SpikeTrap: class extends Model {
-    constructor(fame) {
+    constructor(game) {
       super(game);
       this.currentTier = null;
       this.updateModel();
@@ -690,18 +694,20 @@ export default {
       this.game.renderer.projectiles.addAttachment(this.spikeSprite, 10);
     }
     onDie() {
-      (this.game.renderer.projectiles.removeAttachment(this.spikeSprite),
-        (this.spikeSprite = null));
+      this.game.renderer.projectiles.removeAttachment(this.spikeSprite);
+      this.spikeSprite = null;
     }
     update(t, e) {
-      e &&
-        (void 0 !== e.position &&
+      if (e) {
+        if (void 0 !== e.position) {
           this.spikeSprite.setPosition(
             this.getPositionX(),
             this.getPositionY(),
-          ),
-        this.updateModel(e.tier),
-        this.updateFiringAnimation(e));
+          );
+        }
+        this.updateModel(e.tier);
+        this.updateFiringAnimation(e);
+      }
       super.update(t, e);
     }
     updateModel(t = 1) {
@@ -721,8 +727,9 @@ export default {
       }
     }
     updateFiringAnimation(t) {
-      const e = this.game.renderer.replicator.getTickIndex();
-      this.spikeSprite.setVisible(Math.abs(t.firingTick - e) < 10);
+      this.game.renderer.replicator.getTickIndex() - t.firingTick < 5
+        ? this.spikeSprite.setVisible(true)
+        : this.spikeSprite.setVisible(false);
     }
   },
   CannonTower: class extends TowerModel {
@@ -789,54 +796,53 @@ export default {
       this.lastExtensionPosition = void 0;
       this.arm = new GraphicsNode(this.game);
       this.arm.drawRect(-8, 0, 8, 48, {
-        r: 0,
-        g: 0,
-        b: 0,
+        r: 51,
+        g: 51,
+        b: 51,
       });
       this.arm.setRotation(180);
       this.addAttachment(this.arm, 2);
+      this.blade = new SpriteNode(
+        this.game,
+        "./static/images/Entity/SawTower/SawTowerBlade.svg",
+      );
+      this.blade.setPositionY(this.extensionPosition - 12 - 16);
+      this.addAttachment(this.blade, 3);
       this.updateModel();
     }
     update(t, e) {
-      e &&
-        (this.updateModel(e.tier),
-        this.updateAnimation(t, e),
-        this.updateHealthBar(e));
+      if (e) {
+        this.updateModel(e.tier);
+        this.updateAnimation(t, e);
+        this.updateHealthBar(e);
+      }
       super.update(t, e);
     }
     updateModel(t = 1) {
       if (t != this.currentTier) {
-        if (
-          ((this.currentTier = t),
-          this.removeAttachment(this.base),
-          this.removeAttachment(this.blade),
-          this.removeAttachment(this.top),
-          this.removeAttachment(this.brace),
-          ![1, 2, 3, 4, 5, 6, 7, 8].includes(t))
-        )
+        this.currentTier = t;
+        this.removeAttachment(this.base);
+        this.removeAttachment(this.top);
+        this.removeAttachment(this.brace);
+        if (![1, 2, 3, 4, 5, 6, 7, 8].includes(t)) {
           throw new Error(`Unknown tier encountered for SawTower: ${t}`);
-        ((this.base = new SpriteNode(
+        }
+        this.base = new SpriteNode(
           this.game,
           `./static/images/Entity/SawTower/SawTowerTier${t}Base.svg`,
-        )),
-          (this.blade = new SpriteNode(
-            this.game,
-            "./static/images/Entity/SawTower/SawTowerBlade.svg",
-          )),
-          (this.top = new SpriteNode(
-            this.game,
-            `./static/images/Entity/SawTower/SawTowerTier${t}Top.svg`,
-          )),
-          this.top.setPositionY(-16),
-          (this.brace = new SpriteNode(
-            this.game,
-            `./static/images/Entity/SawTower/SawTowerTier${t}Brace.svg`,
-          )),
-          this.blade.setPositionY(this.extensionPosition - 12 - 16));
+        );
+        this.top = new SpriteNode(
+          this.game,
+          `./static/images/Entity/SawTower/SawTowerTier${t}Top.svg`,
+        );
+        this.top.setPositionY(-16);
+        this.brace = new SpriteNode(
+          this.game,
+          `./static/images/Entity/SawTower/SawTowerTier${t}Brace.svg`,
+        );
         this.arm.draw.height = -this.extensionPosition;
         this.brace.setPositionY(this.extensionPosition - 16);
         this.addAttachment(this.base, 1);
-        this.addAttachment(this.blade, 3);
         this.addAttachment(this.top, 4);
         this.addAttachment(this.brace, 5);
         this.brace.setAnchor(0.5, 1);
@@ -846,132 +852,61 @@ export default {
       this.healthBar.setVisible(t.health !== t.maxHealth);
     }
     updateAnimation(t, e) {
-      (0 !== e.firingTick
-        ? ((this.currentRotation += (720 * t) / 1e3),
-          (this.currentRotation %= 360),
-          this.blade.setRotation(this.currentRotation),
-          (this.extending = !0))
-        : (this.extending = !1),
-        !0 === this.extending
-          ? ((this.extensionPosition -= 4),
-            this.extensionPosition < -64 && (this.extensionPosition = -64))
-          : ((this.extensionPosition += 8),
-            this.extensionPosition > 0 && (this.extensionPosition = 0)),
-        this.extensionPosition !== this.lastExtensionPosition &&
-          ((this.lastExtensionPosition = this.extensionPosition),
-          this.blade.setPositionY(this.extensionPosition - 12 - 16),
-          (this.arm.draw.height = -this.extensionPosition),
-          this.brace.setPositionY(this.extensionPosition - 16)));
+      if (0 !== e.firingTick) {
+        this.currentRotation += (720 * t) / 1000;
+        this.currentRotation %= 360;
+        this.blade.setRotation(this.currentRotation);
+        this.extending = true;
+      } else {
+        this.extending = false;
+      }
+      if (true === this.extending) {
+        this.extensionPosition -= 4;
+        if (this.extensionPosition < -64) {
+          this.extensionPosition = -64;
+        }
+      } else {
+        this.extensionPosition += 8;
+        if (this.extensionPosition > 0) {
+          this.extensionPosition = 0;
+        }
+      }
+      if (this.extensionPosition !== this.lastExtensionPosition) {
+        this.lastExtensionPosition = this.extensionPosition;
+        this.blade.setPositionY(this.extensionPosition - 12 - 16);
+        this.arm.draw.height = -this.extensionPosition;
+        this.brace.setPositionY(this.extensionPosition - 16);
+      }
     }
   },
   LightningTower: class extends TowerModel {
     constructor(game) {
       super(game, "LightningTower");
-      this.targetBeams = new GraphicsNode(this.game);
-      this.game.renderer.projectiles.addAttachment(this.targetBeams, 2);
       this.lastFiringTick = 0;
-      this.hasFired = !1;
-      this.branchTextures = [];
       this.currentRotation = 0;
       this.currentRotationSpeed = 0;
     }
-    removedParentFunction() {
-      this.game.renderer.projectiles.removeAttachment(this.targetBeams);
-    }
-    createLightningTexture(t, e) {
-      const r = this.game.util.angleTo(t, e),
-        n = Math.sqrt(this.game.util.measureDistance(t, e)),
-        i = 2 * (2 + Math.floor(3 * Math.random()));
-      this.targetBeams.draw.moveTo(t.x, t.y);
-      let o = {
-        x: t.x,
-        y: t.y,
-      };
-      for (let t = 0; t <= i; t++)
-        if (t == i) this.targetBeams.draw.lineTo(e.x, e.y);
-        else if (t % 2 == 0) {
-          const t = (r - (40 - Math.floor(10 * Math.random())) + 360) % 360,
-            e = {
-              x: o.x + Math.sin((t * Math.PI) / 180) * ((n / i) * 1.25),
-              y: o.y - Math.cos((t * Math.PI) / 180) * ((n / i) * 1.25),
-            };
-          (this.targetBeams.draw.lineTo(e.x, e.y), (o = e));
-        } else {
-          const t = (r + (40 - Math.floor(10 * Math.random())) + 360) % 360,
-            e = {
-              x: o.x + Math.sin((t * Math.PI) / 180) * ((n / i) * 1.25),
-              y: o.y - Math.cos((t * Math.PI) / 180) * ((n / i) * 1.25),
-            };
-          (this.targetBeams.draw.lineTo(e.x, e.y), (o = e));
-        }
-      this.targetBeams.draw.stroke({
-        width: 3,
-        color: 16777215,
-      });
-    }
     update(t, e) {
-      (e &&
-        (this.updateSpinningAnimation(t, e), this.updateFiringAnimation(t, e)),
-        super.update(t, e));
+      if (e) {
+        this.updateSpinningAnimation(t, e);
+      }
+      super.update(t, e);
     }
     updateSpinningAnimation(t, e) {
-      (this.game.renderer.replicator.getMsSinceTick(this.lastFiringTick) > 1e3
+      (this.game.renderer.replicator.getMsSinceTick(this.lastFiringTick) > 1000
         ? (this.currentRotationSpeed = Math.max(
             0,
-            this.currentRotationSpeed - (15 * t) / 1e3,
+            this.currentRotationSpeed - (15 * t) / 1000,
           ))
         : (this.currentRotationSpeed = Math.min(
-            this.currentRotationSpeed + (36 * t) / 1e3,
-            (720 * t) / 1e3,
+            this.currentRotationSpeed + (36 * t) / 1000,
+            (720 * t) / 1000,
           )),
         this.currentRotationSpeed > 0 &&
           ((this.currentRotation += this.currentRotationSpeed),
           (this.currentRotation %= 360),
-          this.coil.setRotation(this.currentRotation)));
-    }
-    clearLightning(t) {
-      ((this.hasFired = !1),
-        this.targetBeams.draw.clear(),
-        this.branchTextures.forEach((t) => {
-          this.targetBeams.removeAttachment(t);
-        }),
-        (this.branchTextures = []));
-    }
-    updateFiringAnimation(t, e) {
-      if (0 == e.firingTick) return;
-      const r = this.game.renderer.replicator.getMsSinceTick(e.firingTick);
-      if (e.firingTick !== this.lastFiringTick) {
-        this.clearLightning();
-        const t = this.parent.targetTick.position;
-        (this.targetBeams.setAlpha(1), (this.hasFired = !0));
-        let r = {
-          x: 0,
-          y: 0,
-        };
-        const n = this.game.util.angleTo(t, {
-          x: e.targetBeams[0],
-          y: e.targetBeams[1],
-        });
-        ((r.x +=
-          Math.sin((n * Math.PI) / 180) * (Math.floor(8 * Math.random()) + 22)),
-          (r.y -=
-            Math.cos((n * Math.PI) / 180) *
-            (Math.floor(8 * Math.random()) + 22)),
-          (r.x += t.x),
-          (r.y += t.y));
-        for (let t = 0; t < e.targetBeams.length; t += 2) {
-          const n = {
-            x: e.targetBeams[t],
-            y: e.targetBeams[t + 1],
-          };
-          (this.createLightningTexture(r, n), (r = n));
-        }
-        this.lastFiringTick = e.firingTick;
-      } else if (1 == this.hasFired) {
-        const t = Math.min(1, Math.max(0, r / 50));
-        this.targetBeams.setAlpha(1 - t);
-      }
-      r >= 100 && 1 == this.hasFired && this.clearLightning();
+          this.coil.setRotation(this.currentRotation)),
+        0 !== e.firingTick && (this.lastFiringTick = e.firingTick));
     }
     updateModel(t = 1) {
       if (t != this.currentTier) {
@@ -1001,7 +936,7 @@ export default {
   Zombie: class extends PlayerModel {
     constructor(game) {
       super(game);
-      this.healthBar = new HealthBarModel({
+      this.healthBar = new HealthBarModel(this.game, {
         r: 183,
         g: 70,
         b: 20,
@@ -1010,124 +945,130 @@ export default {
       this.healthBar.setScale(0.6);
       this.addAttachment(this.healthBar, 0);
 
-      this.hasDeathFadeEffect = !0;
+      this.hasDeathFadeEffect = true;
       this.deathFadeEffect.fadeOutTime = 100;
       this.deathFadeEffect.maxScaleIncreasePercent = 0.15;
     }
     update(t, e) {
       const r = this.getParent();
-      (e &&
-        (void 0 === this.base && this.updateModel(e, r),
-        this.healthBar.setVisible(e.health < e.maxHealth),
-        void 0 !== e.yaw && (r.targetTick.aimingYaw = e.yaw)),
-        super.update(t, e));
+      if (e) {
+        if (void 0 === this.base) {
+          this.updateModel(e, r);
+        }
+        this.healthBar.setVisible(e.health < e.maxHealth);
+        if (void 0 !== e.yaw) {
+          r.targetTick.aimingYaw = e.yaw;
+        }
+      }
+      super.update(t, e);
     }
     updateModel(t, e) {
-      if (t.tier < 0 || t.tier > 10)
+      if (t.tier < 0 || t.tier > 10) {
         throw new Error(`Invalid zombie tier received: ${t.tier}`);
-      if (3 == t.tier)
-        ((this.base = new SpriteNode(
+      }
+      if (3 == t.tier) {
+        this.base = new SpriteNode(
           this.game,
           `./static/images/Entity/Zombie/Zombie${t.colour}/Zombie${t.colour}Tier${t.tier}Base.svg`,
-        )),
-          (this.weaponLeft = new SpriteNode(
-            this.game,
-            `./static/images/Entity/Zombie/Zombie${t.colour}/Zombie${t.colour}Tier${t.tier}WeaponLeft.svg`,
-          )),
-          (this.weaponRight = new SpriteNode(
-            this.game,
-            `./static/images/Entity/Zombie/Zombie${t.colour}/Zombie${t.colour}Tier${t.tier}WeaponRight.svg`,
-          )),
-          this.weaponLeft.setAnchor(0.5, 0.5),
-          this.weaponRight.setAnchor(0.5, 0.5),
-          (this.weaponUpdateFunc = this.updateStabbingWeapon(500)),
-          this.addAttachment(this.base, 2),
-          this.addAttachment(this.weaponLeft, 1),
-          this.addAttachment(this.weaponRight, 1));
-      else {
-        switch (
-          ((this.base = new SpriteNode(
-            this.game,
-            `./static/images/Entity/Zombie/Zombie${t.colour}/Zombie${t.colour}Tier${t.tier}Base.svg`,
-          )),
-          (this.weapon = new SpriteNode(
-            this.game,
-            `./static/images/Entity/Zombie/Zombie${t.colour}/Zombie${t.colour}Tier${t.tier}Weapon.svg`,
-          )),
-          t.tier)
-        ) {
+        );
+        this.weaponLeft = new SpriteNode(
+          this.game,
+          `./static/images/Entity/Zombie/Zombie${t.colour}/Zombie${t.colour}Tier${t.tier}WeaponLeft.svg`,
+        );
+        this.weaponRight = new SpriteNode(
+          this.game,
+          `./static/images/Entity/Zombie/Zombie${t.colour}/Zombie${t.colour}Tier${t.tier}WeaponRight.svg`,
+        );
+        this.weaponLeft.setAnchor(0.5, 0.5);
+        this.weaponRight.setAnchor(0.5, 0.5);
+        this.weaponUpdateFunc = this.updateStabbingWeapon(500);
+        this.addAttachment(this.base, 2);
+        this.addAttachment(this.weaponLeft, 1);
+        this.addAttachment(this.weaponRight, 1);
+      } else {
+        this.base = new SpriteNode(
+          this.game,
+          `./static/images/Entity/Zombie/Zombie${t.colour}/Zombie${t.colour}Tier${t.tier}Base.svg`,
+        );
+        this.weapon = new SpriteNode(
+          this.game,
+          `./static/images/Entity/Zombie/Zombie${t.colour}/Zombie${t.colour}Tier${t.tier}Weapon.svg`,
+        );
+        switch (t.tier) {
           case 2:
           default:
-            (this.weapon.setAnchor(0.5, 0.5),
-              (this.weaponUpdateFunc = this.updateAntiClockwiseSwingingWeapon(
-                300,
-                100,
-              )));
+            this.weapon.setAnchor(0.5, 0.5);
+            this.weaponUpdateFunc = this.updateAntiClockwiseSwingingWeapon(300, 100);
             break;
           case 4:
           case 5:
           case 6:
           case 7:
           case 8:
-            (this.weapon.setAnchor(0.5, 0.5),
-              (this.weaponUpdateFunc = this.updateClockwiseSwingingWeapon(
-                300,
-                100,
-              )));
+            this.weapon.setAnchor(0.5, 0.5);
+            this.weaponUpdateFunc = this.updateClockwiseSwingingWeapon(300, 100);
+            break;
         }
-        (this.addAttachment(this.base, 2), this.addAttachment(this.weapon, 1));
+        this.addAttachment(this.base, 2);
+        this.addAttachment(this.weapon, 1);
       }
     }
   },
   SpellIndicator: class extends Model {
     constructor(game, t) {
-      (super(game),
-        (this.spellIndicatorModel = new GraphicsNode(this.game)),
-        this.spellIndicatorModel.setAlpha(0.1),
-        this.addAttachment(this.spellIndicatorModel),
-        (this.spellType = t.spellType),
-        (this.radius = t.radius),
-        (this.currentPulse = 0),
-        (this.pulseSpeed = 1 * Math.PI),
-        (this.minAlpha = 0.05),
-        (this.maxAlpha = 0.12),
-        (this.icons = {}),
-        (this.iconOffsets = {}),
-        (this.iconMaxOffset = 50),
-        (this.iconSpawnTolerance = 0.1),
-        (this.iconTotal = 10),
-        (this.iconMoveRatePerSecond = 144));
+      super(game);
+      this.spellIndicatorModel = new GraphicsNode(this.game);
+      this.spellIndicatorModel.setAlpha(0.1);
+      this.addAttachment(this.spellIndicatorModel);
+      this.spellType = t.spellType;
+      this.radius = t.radius;
+      this.currentPulse = 0;
+      this.pulseSpeed = Math.PI;
+      this.minAlpha = 0.05;
+      this.maxAlpha = 0.12;
+      this.icons = {};
+      this.iconOffsets = {};
+      this.iconMaxOffset = 50;
+      this.iconSpawnTolerance = 0.1;
+      this.iconTotal = 10;
+      this.iconMoveRatePerSecond = 144;
+
       let e = {
-          r: 216,
-          g: 0,
-          b: 39,
-        },
-        r = {
-          r: 216,
-          g: 77,
-          b: 92,
-        };
-      ("Rapidfire" === this.spellType &&
-        ((e = {
+        r: 216,
+        g: 0,
+        b: 39,
+      };
+      let r = {
+        r: 216,
+        g: 77,
+        b: 92,
+      };
+      if ("Rapidfire" === this.spellType) {
+        e = {
           r: 255,
           g: 254,
           b: 119,
-        }),
-        (r = {
+        };
+        r = {
           r: 255,
           g: 255,
           b: 0,
-        })),
-        this.spellIndicatorModel.drawCircle(0, 0, this.radius, e, r, 8),
-        (this.hasDeathFadeEffect = !0),
-        (this.deathFadeEffect.fadeOutTime = 1e3),
-        (this.deathFadeEffect.maxScaleIncreasePercent = 0));
+        };
+      }
+      this.spellIndicatorModel.drawCircle(0, 0, this.radius, e, r, 8);
+      this.hasDeathFadeEffect = true;
+      this.deathFadeEffect.fadeOutTime = 1000;
+      this.deathFadeEffect.maxScaleIncreasePercent = 0;
     }
     update(t, e) {
-      (e && (this.updatePulse(t), this.updateIcons(t)), super.update(t, e));
+      if (e) {
+        this.updatePulse(t);
+        this.updateIcons(t);
+      }
+      super.update(t, e);
     }
     updatePulse(t) {
-      this.currentPulse += t / 1e3;
+      this.currentPulse += t / 1000;
       const e = (Math.sin(this.currentPulse * this.pulseSpeed) + 1) / 2;
       this.spellIndicatorModel.setAlpha(
         this.minAlpha + (this.maxAlpha - this.minAlpha) * e,
@@ -1137,63 +1078,60 @@ export default {
       for (let e = 0; e < this.iconTotal; e++) {
         if (!this.icons[e]) {
           if (Math.random() > this.iconSpawnTolerance) continue;
-          ((this.icons[e] = new SpriteNode(
+          this.icons[e] = new SpriteNode(
             this.game,
             `./static/images/Entity/Spells/${this.spellType}Icon.svg`,
-          )),
-            (this.iconOffsets[e] = 0));
-          const t = Math.random() * Math.PI * 2,
-            r = Math.cos(t) * Math.random() * this.radius,
-            n = Math.sin(t) * Math.random() * this.radius;
-          (this.icons[e].setPosition(r, n),
-            this.icons[e].setAlpha(0.5),
-            this.addAttachment(this.icons[e]));
+          );
+          this.iconOffsets[e] = 0;
+          const r = Math.random() * Math.PI * 2,
+            n = Math.cos(r) * Math.random() * this.radius,
+            i = Math.sin(r) * Math.random() * this.radius;
+          this.icons[e].setPosition(n, i);
+          this.icons[e].setAlpha(0.5);
+          this.addAttachment(this.icons[e]);
           continue;
         }
-        const r = (this.iconMoveRatePerSecond / 1e3) * t;
-        ((this.iconOffsets[e] += r),
-          this.icons[e].setPositionY(this.icons[e].getPositionY() - r),
-          this.icons[e].setAlpha(
-            0.5 - 0.5 * Math.min(1, this.iconOffsets[e] / this.iconMaxOffset),
-          ),
-          this.iconOffsets[e] >= this.iconMaxOffset &&
-            (this.removeAttachment(this.icons[e]),
-            delete this.icons[e],
-            delete this.iconOffsets[e]));
+        const r = (this.iconMoveRatePerSecond / 1000) * t;
+        this.iconOffsets[e] += r;
+        this.icons[e].setPositionY(this.icons[e].getPositionY() - r);
+        this.icons[e].setAlpha(
+          0.5 - 0.5 * Math.min(1, this.iconOffsets[e] / this.iconMaxOffset),
+        );
+        if (this.iconOffsets[e] >= this.iconMaxOffset) {
+          this.removeAttachment(this.icons[e]);
+          delete this.icons[e];
+          delete this.iconOffsets[e];
+        }
       }
     }
   },
   ResourcePickup: class extends Model {
     constructor(game, t) {
-      (super(game),
-        (this.resourceType = ["wood", "stone", "gold"][t.resourcePickupType]),
-        (this.resourceType =
-          this.resourceType.charAt(0).toUpperCase() +
-          this.resourceType.slice(1)));
+      super(game);
+      this.resourceType = ["wood", "stone", "gold"][t.resourcePickupType];
+      this.resourceType =
+        this.resourceType.charAt(0).toUpperCase() +
+        this.resourceType.slice(1);
       const e = new SpriteNode(
         this.game,
         `./static/images/Entity/Harvester/${this.resourceType}Pickup.svg`,
       );
-      (this.addAttachment(e, 1),
-        (this.hasDeathFadeEffect = !0),
-        (this.deathFadeEffect.fadeOutTime = 150),
-        (this.deathFadeEffect.maxScaleIncreasePercent = 0.15),
-        (this.deathFadeEffect.shouldUpdatePosition = !1));
+      this.addAttachment(e, 1);
+      this.hasDeathFadeEffect = true;
+      this.deathFadeEffect.fadeOutTime = 150;
+      this.deathFadeEffect.maxScaleIncreasePercent = 0.15;
+      this.deathFadeEffect.shouldUpdatePosition = false;
     }
   },
-  /*
-  Visualiser: class extends te {
-    constructor(t) {
-      super(),
-        (this.text = new Qt("↑", {
-          fontFamily: "Hammersmith One",
-          fontSize: 20,
-        })),
-        this.addAttachment(this.text),
-        this.setRotation(t.yaw),
-        (t.position.x += 24),
-        (t.position.y += 24);
+  Visualiser: class extends Model {
+    constructor(game, t) {
+      super(game);
+      this.text = new TextNode(this.game, "↑", {
+        fontFamily: "Hammersmith One",
+        fontSize: 20,
+      });
+      this.addAttachment(this.text);
+      this.setRotation(t.yaw);
     }
-  },
-  */
+  }
 };

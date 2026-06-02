@@ -101,15 +101,33 @@ export default class {
     this.buildings = {};
   }
   onBuildingDataReceived(t) {
-    this.buildingData = JSON.parse(t.json);
-    for (const t in this.buildingData) {
-      this.buildingData[t].built = 0;
-      // this.buildingData[t].disabled = $state(false);
+    const arr = JSON.parse(t.json);
+    this.buildingData = {};
+    for (const item of arr) {
+      if (item.kindData && item.kindData[item.name]) {
+        Object.assign(item, item.kindData[item.name]);
+      }
+      item.built = 0;
+      this.buildingData[item.name] = item;
     }
     this.game.eventEmitter.emit("BuildingDataReceived");
   }
   onItemDataReceived(t) {
-    this.toolData = JSON.parse(t.json);
+    const arr = JSON.parse(t.json);
+    this.toolData = {};
+    for (const item of arr) {
+      item.class = item.kind === "Consumable" ? "Potion" : item.kind;
+      if (item.data) {
+        const subData = item.data.Tool || item.data.Shield || item.data.Consumable;
+        if (subData) {
+          Object.assign(item, subData);
+        }
+      }
+      if (item.projectileSplashRange !== undefined) {
+        item.projectileSplashDamageRange = item.projectileSplashRange;
+      }
+      this.toolData[item.id || item.name] = item;
+    }
     this.game.eventEmitter.emit("ToolDataReceived");
   }
   onSpellDataReceived(t) {
@@ -164,7 +182,6 @@ export default class {
     this.game.eventEmitter.emit("BuildingsUpdated", t);
   }
   onFailure(t) {
-    console.log(t);
     this.pendingPopups.push({
       message: t.failure,
       type: "failure",
