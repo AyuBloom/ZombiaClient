@@ -1,0 +1,13 @@
+.svelte-kit/
+.agents/
+node_modules/
+build/
+static/
+pnpm-lock.json
+.DS_Store
+
+AGENTS.md
+README.md
+
+# don't really write much of anything on the rust side, let's ignore it for now
+src-tauri/
