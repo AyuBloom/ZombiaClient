@@ -1,4 +1,6 @@
 <script>
+    import { tick } from "svelte";
+
     let { game } = $props();
 
     let isTyping = $state(false);
@@ -12,9 +14,12 @@
     let msg = $state("");
     let channel = $state(0);
 
-    game.eventEmitter.on("ReceiveChatMessageRpcReceived", (t) => {
+    game.eventEmitter.on("ReceiveChatMessageRpcReceived", async (t) => {
         msgs.push({ ...t, date: Date.now() }); // <-- unsure if i want to add date
-        chatBox.scrollTop = chatBox.scrollHeight;
+        await tick();
+        if (chatBox) {
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
     });
     game.eventEmitter.on("13Up", () => {
         if (isTyping) {

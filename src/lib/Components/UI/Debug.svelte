@@ -5,8 +5,8 @@
 
     let fps = $state(0);
     let frameTime = $state(undefined);
-    let lastTick = Date.now();
-    let msSinceLastTick = $state(0);
+    let tickTimes = $state([]);
+    let tps = $derived(tickTimes.length);
     let isWebGL = $state(null);
     let isWebGPU = $state(null);
 
@@ -14,18 +14,28 @@
 
     game.eventEmitter.on("EntityUpdate", (e) => {
         frameTime = e.averageServerFrameTime;
+        fps = game.renderer.replicator.getFps();
 
         let now = Date.now();
-        msSinceLastTick = now - lastTick;
-        lastTick = now;
+        tickTimes = [...tickTimes, now].filter(t => t > now - 1000);
 
         if (isWebGL === null || isWebGPU === null) {
             isWebGL = game.renderer.renderer.renderer instanceof PIXI.WebGLRenderer;
             isWebGPU = game.renderer.renderer.renderer instanceof PIXI.WebGPURenderer;
         }
     });
+    /*
     game.eventEmitter.on("RendererUpdated", () => {
         fps = game.renderer.replicator.getFps();
+    });
+    */
+
+    $effect(() => {
+        const interval = setInterval(() => {
+            const now = Date.now();
+            tickTimes = tickTimes.filter(t => t > now - 1000);
+        }, 100);
+        return () => clearInterval(interval);
     });
 </script>
 
@@ -35,11 +45,11 @@
     {/if}
     {#if frameTime !== undefined}
         <p class={frameTime > 50 ? "overloaded" : frameTime > 30 ? "stressed" : ""}>
-            {game.network.ping}ms / {frameTime}ms / {Math.round(1000 / msSinceLastTick)} TPS
+            {game.network.ping}ms / {frameTime}ms / {tps} TPS
         </p>
     {:else}
         <p>
-            {game.network.ping}ms / {Math.round(1000 / msSinceLastTick)} TPS
+            {game.network.ping}ms / {tps} TPS
         </p>
     {/if}
     {#if !isMobile.any}

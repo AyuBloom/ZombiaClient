@@ -3895,6 +3895,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "tauri-plugin-macos-fps"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "11177f7c97f1322fbcb5d966ebb0378e411145d65f3f2a2f897d8389ebdba583"
+dependencies = [
+ "log",
+ "objc2",
+ "objc2-foundation",
+ "serde",
+ "tauri",
+]
+
+[[package]]
 name = "tauri-plugin-opener"
 version = "2.5.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5714,13 +5727,14 @@ checksum = "b8848ee67ecc8aedbaf3e4122217aff892639231befc6a1b58d29fff4c2cabaa"
 
 [[package]]
 name = "zombia-client"
-version = "0.6.3"
+version = "0.6.4"
 dependencies = [
  "serde",
  "serde_json",
  "tauri",
  "tauri-build",
  "tauri-plugin-http",
+ "tauri-plugin-macos-fps",
  "tauri-plugin-opener",
  "tauri-plugin-svelte",
 ]

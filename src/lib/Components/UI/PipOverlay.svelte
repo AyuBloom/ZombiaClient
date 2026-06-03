@@ -4,39 +4,23 @@
     let resourceGains = $state({});
     let damages = $state({});
 
-    function showDamage(uid, damage) {
-        const tick = game.renderer.replicator.currentTick.tick;
-        for (let damagedUid in damages) {
-            if (
-                damagedUid == uid &&
-                damages[damagedUid].damage == damage &&
-                damages[damagedUid].tick == tick
-            ) {
-                return;
-            }
-        }
-
-        const entity = game.renderer.world.entities[uid];
-        if (!entity) return;
-
-        const position = game.renderer.worldToScreen(
-            entity.getPositionX(),
-            entity.getPositionY(),
-        );
-
+    function showDamage(x, y, damage, duration, isScore = null) {
         const uuid = game.util.uuidv4();
 
+        const position = game.renderer.worldToScreen(x, y);
+
         damages[uuid] = {
-            tick,
             damage,
             position: {
-                x: position.x, // - i.offsetWidth / 2,
-                y: position.y, // - i.offsetHeight - 10,
+                x: position.x,
+                y: position.y,
             },
+            isScore,
         };
+
         setTimeout(() => {
             delete damages[uuid];
-        }, 500);
+        }, duration);
     }
 
     function showResourceGain(uid, type, delta) {
@@ -67,6 +51,25 @@
         }, 250);
     }
 
+    game.eventEmitter.on("DamageDealtRpcReceived", (t) => {
+        let e = t.damage.toLocaleString(),
+            i = 500;
+        if (2147483647 == t.damage) {
+            e = "KILLED";
+            i = 1000;
+        }
+        showDamage(t.x, t.y, e, i);
+    });
+
+    game.eventEmitter.on("EntityKilledRpcReceived", (t) => {
+        const e = game.renderer.world.entities[t.uid];
+        if (!e) return;
+        const isScore = Number.isInteger(t.score) && t.score >= 0 && t.score <= 4294967295
+          , s = isScore ? `+${t.score.toLocaleString()}` : "KILLED";
+
+        showDamage(e.getPositionX(), e.getPositionY(), s, 500, isScore)
+    });
+
     game.eventEmitter.on("PlayerTickUpdated", () => {
         const t = game.ui.playerTick,
             e = game.ui.lastPlayerTick;
@@ -79,11 +82,6 @@
             ) > 500
         )
             return;
-
-        const lastPlayerDamages = t.lastPlayerDamages || [];
-        for (let e = 0; e < lastPlayerDamages.length; e += 2) {
-            showDamage(lastPlayerDamages[e], lastPlayerDamages[e + 1]);
-        }
 
         const r = ["gold", "wood", "stone", "tokens"];
         for (let n of r) {
@@ -107,9 +105,9 @@
         </p>
     {/each}
 
-    {#each Object.values(damages) as { damage, position }}
+    {#each Object.values(damages) as { damage, position, isScore }}
         <p
-            class="pip -translate-x-1/2 -translate-y-full text-accent-red"
+            class="pip -translate-x-1/2 -translate-y-full {isScore ? "text-accent-gold" : "text-accent-red"}"
             style="left: {position.x}px; top: {position.y - 10}px"
         >
             {damage}
