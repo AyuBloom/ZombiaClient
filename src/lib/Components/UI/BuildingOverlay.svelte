@@ -468,27 +468,40 @@
             r = game.renderer.screenToWorld(
                 game.ui.mousePosition.x,
                 game.ui.mousePosition.y,
-            ),
-            n = e.entityGrid.getCellIndices(r.x, r.y, {
-                width: 1,
-                height: 1,
-            }),
-            i = n.length > 0 && n[0];
+            );
 
-        if (false === i) return;
+        for (const entity of Object.values(e.entities)) {
+            const i = entity.getTargetTick();
+            if (!i || !i.model) continue;
 
-        const o = e.entityGrid.getEntitiesInCell(i);
-        for (const r in o) {
-            const n = parseInt(r);
+            const data = buildingData[i.model];
+            if (!data) continue;
 
-            if (n == buildingUid) return onWorldMouseUp(t);
+            let width = data.gridWidth || 1;
+            let height = data.gridHeight || 1;
+            if (i.yaw === 90 || i.yaw === 270) {
+                const temp = width;
+                width = height;
+                height = temp;
+            }
 
-            const i = e.entities[n].getTargetTick();
-            for (const e in buildingData) {
-                if (e == i.model) {
-                    onWorldMouseUp(t);
-                    return startWatching(n);
+            const bx = entity.getPositionX();
+            const by = entity.getPositionY();
+            const cellSize = 48;
+            const halfW = (width * cellSize) / 2;
+            const halfH = (height * cellSize) / 2;
+
+            if (
+                r.x >= bx - halfW &&
+                r.x <= bx + halfW &&
+                r.y >= by - halfH &&
+                r.y <= by + halfH
+            ) {
+                if (entity.uid === buildingUid) {
+                    return onWorldMouseUp(t);
                 }
+                onWorldMouseUp(t);
+                return startWatching(entity.uid);
             }
         }
         onWorldMouseUp(t);

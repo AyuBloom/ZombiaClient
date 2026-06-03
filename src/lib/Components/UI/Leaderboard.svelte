@@ -7,15 +7,19 @@
 
     // const MARGIN_TO_CENTER = 50;
 
-    let data = $state([
-        {
-            uid: game.ui.playerTick?.uid,
-            rank: "-",
-            name: gameOptions.playerName || "Player",
-            score: 0,
-            wave: 0,
-        },
-    ]);
+    console.log(gameOptions.state.playerName);
+    let data = $state([]);
+    game.eventEmitter.on("EnterWorldResponse", () => {
+        data = [
+            {
+                uid: game.ui.playerTick?.uid,
+                rank: "-",
+                name: gameOptions.state.playerName || "Player",
+                score: 0,
+                wave: 0,
+            },
+        ];
+    });
     game.eventEmitter.on("UpdateLeaderboardRpcReceived", (e) => {
         data = e;
     });
@@ -57,7 +61,7 @@
     @reference "tailwindcss/theme";
 
     div > div {
-        @apply relative mb-1 last:mb-0 pr-24 pl-10 h-5;
+        @apply flex relative mb-1 last:mb-0 last:h-fit pr-24 pl-10 h-5;
     }
     span {
         @apply text-white/70 text-[0.625rem];

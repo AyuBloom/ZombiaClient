@@ -224,12 +224,12 @@
                     ? ''
                     : 'disabled'} w-40 h-full rounded bg-white pl-2 pr-2 shadow"
                 type="text"
-                placeholder={currentParty.partyName || "verycoolpartyname"}
+                placeholder={currentParty?.partyName || "verycoolpartyname"}
                 bind:value={partyName}
             />
-            <div class="flex flex-row grow h-full rounded bg-white pl-2 shadow">
+            <div class="flex flex-1 flex-row grow h-full rounded bg-white pl-2 shadow">
                 <input
-                    class="grow pr-2 border-r-2 border-gray/10"
+                    class="grow pr-2 border-r-2 text-sm border-gray/10"
                     type="text"
                     maxlength="0"
                     placeholder="zombia.io/#/{game.network.options.serverData
@@ -242,7 +242,7 @@
                 />
                 <button
                     aria-label="Randomise party key"
-                    class="relative w-12 h-12"
+                    class="relative w-10 h-10"
                     onclick={() => {
                         game.network.sendRpc({
                             name: "RandomisePartyKey",
@@ -258,10 +258,10 @@
             </div>
         </div>
         <div
-            class="relative flex flex-row w-full basis-1/2 gap-2 text-white *:rounded-sm *:h-full *:basis-1/2 *:transition *:bg-accent-red *:hover:brightness-125"
+            class="relative flex flex-1 flex-row w-full basis-1/2 gap-2 text-white *:rounded-sm *:h-full *:basis-1/2 *:transition *:bg-accent-red *:hover:brightness-125"
         >
             <button
-                class={currentParty.memberCount == 1 ? "disabled" : ""}
+                class={currentParty?.memberCount == 1 ? "disabled" : ""}
                 onclick={() => {
                     game.ui.pendingPopups.push({
                         type: "confirmation",
@@ -275,14 +275,14 @@
                 }}>Leave Party</button
             >
             <button
-                class="{currentParty.isOpen ? 'focused' : ''} {isPlayerLeader
+                class="{currentParty?.isOpen ? 'focused' : ''} {isPlayerLeader
                     ? ''
                     : 'disabled'}"
                 onclick={() => {
                     game.network.sendRpc({
                         name: "TogglePartyVisibility",
                     });
-                }}>{currentParty.isOpen ? "Public" : "Private"}</button
+                }}>{currentParty?.isOpen ? "Public" : "Private"}</button
             >
         </div>
     </div>

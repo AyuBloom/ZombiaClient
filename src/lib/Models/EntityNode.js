@@ -56,6 +56,18 @@ export default class extends Node {
       };
       delete t.shortPosition;
     }
+
+    if (t.entityClass === "Building" || t.entityClass === "Resource") {
+      if (
+        !this.targetTick ||
+        this.targetTick.position?.x !== t.position?.x ||
+        this.targetTick.position?.y !== t.position?.y ||
+        this.targetTick.yaw !== t.yaw
+      ) {
+        this.hasPositionedBuilding = false;
+      }
+    }
+
     this.fromTick = this.targetTick;
     this.targetTick = t;
     void 0 !== t.scale && this.setScale(t.scale);
@@ -81,6 +93,15 @@ export default class extends Node {
   }
   tick(t, e) {
     if (!this.fromTick) return;
+    if (this.targetTick.entityClass === "Building" || this.targetTick.entityClass === "Resource") {
+      if (!this.hasPositionedBuilding) {
+        this.setPosition(this.targetTick.position.x, this.targetTick.position.y);
+        this.setRotation(this.targetTick.yaw || 0);
+        this.hasPositionedBuilding = true;
+      }
+      if (!this.isVisible) this.setVisible(true);
+      return;
+    }
     const r = t / e;
     this.isVisible || this.setVisible(true);
     this.setPositionX(

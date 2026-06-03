@@ -6,21 +6,26 @@ export default class {
     this.attachments = [];
     this.parent = null;
     this.isVisible = !0;
-    this.setNode(t || new Container());
+    const n = t || new Container();
+    n.sortableChildren = true;
+    this.setNode(n);
   }
   getNode() {
     return this.node;
   }
   setNode(t) {
     if (this.node && this.node.parent) {
-      const parent = this.node.parent;
-      const index = parent.children.indexOf(this.node);
+      const parentPixi = this.node.parent;
+      const index = parentPixi.children.indexOf(this.node);
       if (index > -1) {
-        parent.addChildAt(t, index);
-        parent.removeChild(this.node);
+        parentPixi.addChildAt(t, index);
+        parentPixi.removeChild(this.node);
       }
     }
     this.node = t;
+    if (t) {
+      t.sortableChildren = true;
+    }
   }
   getParent() {
     return this.parent;
@@ -39,13 +44,10 @@ export default class {
     return this.attachments;
   }
   addAttachment(t, e = 0) {
-    ((t.getNode().zIndex = e),
-      t.setParent(this),
-      this.node.addChild(t.getNode()),
-      this.attachments.push(t),
-      this.node.children.sort((t, e) =>
-        t.zIndex == e.zIndex ? 0 : t.zIndex < e.zIndex ? -1 : 1,
-      ));
+    t.getNode().zIndex = e;
+    t.setParent(this);
+    this.node.addChild(t.getNode());
+    this.attachments.push(t);
   }
   removeAttachment(t) {
     t &&

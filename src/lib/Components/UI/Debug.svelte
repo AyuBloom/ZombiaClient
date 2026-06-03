@@ -4,6 +4,8 @@
 
     let { game } = $props();
 
+    let isDebugging = $state(false);
+
     let fps = $state(0);
     let frameTime = $state(undefined);
     let tickTimes = $state([]);
@@ -21,7 +23,13 @@
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
     }
 
+    game.eventEmitter.on("119Up", (e) => {
+        isDebugging = !isDebugging;
+    });
+
     game.eventEmitter.on("EntityUpdate", (e) => {
+        if (!isDebugging) return;
+
         frameTime = e.averageServerFrameTime;
         fps = game.renderer.replicator.getFps();
 
@@ -36,15 +44,8 @@
     });
 
     $effect(() => {
-        const interval = setInterval(() => {
-            const now = Date.now();
-            tickTimes = tickTimes.filter(t => t > now - 1000);
-        }, 100);
-        return () => clearInterval(interval);
-    });
-
-    $effect(() => {
         const fetchMemory = async () => {
+            if (!isDebugging) return;
             try {
                 appMemory = await invoke("get_memory_usage");
             } catch (e) {
@@ -61,19 +62,21 @@
     {#if isInputLocked}
         <p class="text-accent-gold">Inputs Locked</p>
     {/if}
-    {#if frameTime !== undefined}
-        <p class={frameTime > 50 ? "overloaded" : frameTime > 30 ? "stressed" : ""}>
-            {game.network.ping}ms / {frameTime}ms / {tps} TPS
-        </p>
-    {:else}
-        <p>
-            {game.network.ping}ms / {tps} TPS
-        </p>
-    {/if}
-    {#if !isMobile.any}
-        <p>
-            {Math.round(fps)} FPS {appMemory > 0 ? `/ ${formatBytes(appMemory)}` : ""}
-        </p>
+    {#if isDebugging}
+        {#if frameTime !== undefined}
+            <p class={frameTime > 50 ? "overloaded" : frameTime > 30 ? "stressed" : ""}>
+                {game.network.ping}ms / {frameTime}ms / {tps} TPS
+            </p>
+        {:else}
+            <p>
+                {game.network.ping}ms / {tps} TPS
+            </p>
+        {/if}
+        {#if !isMobile.any}
+            <p>
+                {Math.round(fps)} FPS {appMemory > 0 ? `/ ${formatBytes(appMemory)}` : ""}
+            </p>
+        {/if}
     {/if}
 </div>
 
