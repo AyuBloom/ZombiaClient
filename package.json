@@ -13,6 +13,7 @@
     "debug-socket": "node tools/debug-socket.js",
     "unpack": "node tools/unpack.js",
     "bump": "node tools/bump.js",
+    "diff": "node tools/diff-archive.js",
     "dist": "node tools/build.js",
     "dist:all": "node tools/build.js all",
     "dist:macos": "node tools/build.js macos",

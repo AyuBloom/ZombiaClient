@@ -29,20 +29,22 @@ const colors = {
 
 const semverRegex = /^\d+\.\d+\.\d+(-[a-zA-Z0-9.]+)?$/;
 
-function printBanner() {
+function printBanner(isGame = false) {
     console.log(`${colors.bright}${colors.cyan}====================================================`);
-    console.log(`          ✦ CLIENT VERSION BUMPER ✦                  `);
+    console.log(`          ✦ ${isGame ? 'GAME' : 'CLIENT'} VERSION BUMPER ✦                  `);
     console.log(`====================================================${colors.reset}\n`);
 }
 
 function printUsage() {
     console.log(`${colors.bright}Usage:${colors.reset}`);
-    console.log(`  node tools/bump.js [patch | minor | major | <custom-version>]\n`);
+    console.log(`  node tools/bump.js [options] [patch | minor | major | <custom-version>]\n`);
+    console.log(`${colors.bright}Options:${colors.reset}`);
+    console.log(`  -g, --game     Bump the game version in src/lib/id.json instead of the client version\n`);
     console.log(`${colors.bright}Examples:${colors.reset}`);
-    console.log(`  node tools/bump.js patch     (e.g., 0.6.0 -> 0.6.1)`);
-    console.log(`  node tools/bump.js minor     (e.g., 0.6.0 -> 0.7.0)`);
-    console.log(`  node tools/bump.js major     (e.g., 0.6.0 -> 1.0.0)`);
-    console.log(`  node tools/bump.js 0.7.2     (sets version explicitly to 0.7.2)\n`);
+    console.log(`  node tools/bump.js patch            (e.g., 0.6.0 -> 0.6.1)`);
+    console.log(`  node tools/bump.js --game patch     (e.g., 3.0.1 -> 3.0.2)`);
+    console.log(`  node tools/bump.js major            (e.g., 0.6.0 -> 1.0.0)`);
+    console.log(`  node tools/bump.js -g 3.0.2         (sets game version explicitly to 3.0.2)\n`);
 }
 
 function bumpVersion(currentVersion, type) {
@@ -55,7 +57,7 @@ function bumpVersion(currentVersion, type) {
 
     const match = currentVersion.match(/^(\d+)\.(\d+)\.(\d+)(-.+)?$/);
     if (!match) {
-        throw new Error(`Current version "${currentVersion}" in package.json is not a valid semver.`);
+        throw new Error(`Current version "${currentVersion}" is not a valid semver.`);
     }
 
     let major = parseInt(match[1], 10);
@@ -78,21 +80,75 @@ function bumpVersion(currentVersion, type) {
 }
 
 async function main() {
-    printBanner();
-
     const args = process.argv.slice(2);
     if (args.includes('-h') || args.includes('--help')) {
+        printBanner(false);
         printUsage();
         process.exit(0);
     }
+
+    const gameFlagIndex = args.findIndex(arg => arg === '--game' || arg === '-g');
+    const isGame = gameFlagIndex !== -1;
+    if (isGame) {
+        args.splice(gameFlagIndex, 1);
+    }
+
+    printBanner(isGame);
 
     const bumpType = args[0] || 'patch';
 
     // Define Paths
     const rootDir = process.cwd();
+    const idJsonPath = path.join(rootDir, 'src', 'lib', 'id.json');
     const packageJsonPath = path.join(rootDir, 'package.json');
     const tauriConfPath = path.join(rootDir, 'src-tauri', 'tauri.conf.json');
     const cargoTomlPath = path.join(rootDir, 'src-tauri', 'Cargo.toml');
+
+    if (isGame) {
+        if (!fs.existsSync(idJsonPath)) {
+            console.error(`${colors.red}❌ Error: src/lib/id.json not found in current directory.${colors.reset}`);
+            process.exit(1);
+        }
+
+        let idJson;
+        try {
+            idJson = JSON.parse(fs.readFileSync(idJsonPath, 'utf8'));
+        } catch (err) {
+            console.error(`${colors.red}❌ Error reading/parsing src/lib/id.json:${colors.reset}`, err.message);
+            process.exit(1);
+        }
+
+        const currentVersion = idJson.GAME_VERSION;
+        if (!currentVersion) {
+            console.error(`${colors.red}❌ Error: No GAME_VERSION field found in src/lib/id.json.${colors.reset}`);
+            process.exit(1);
+        }
+
+        let targetVersion;
+        try {
+            targetVersion = bumpVersion(currentVersion, bumpType);
+        } catch (err) {
+            console.error(`${colors.red}❌ Error: ${err.message}${colors.reset}`);
+            printUsage();
+            process.exit(1);
+        }
+
+        console.log(`${colors.blue}ℹ Current game version : ${colors.bright}${currentVersion}${colors.reset}`);
+        console.log(`${colors.blue}ℹ Target game version  : ${colors.bright}${colors.green}${targetVersion}${colors.reset}\n`);
+
+        console.log(`${colors.blue}📝 Updating src/lib/id.json...${colors.reset}`);
+        idJson.GAME_VERSION = targetVersion;
+        try {
+            fs.writeFileSync(idJsonPath, JSON.stringify(idJson, null, 2) + '\n', 'utf8');
+            console.log(`${colors.green}✔ Updated src/lib/id.json successfully.${colors.reset}`);
+        } catch (err) {
+            console.error(`${colors.red}❌ Failed to write src/lib/id.json:${colors.reset}`, err.message);
+            process.exit(1);
+        }
+
+        console.log(`\n${colors.bright}${colors.green}🎉 Game version successfully bumped to ${targetVersion}!${colors.reset}\n`);
+        return;
+    }
 
     // 1. Read Current Version from package.json
     if (!fs.existsSync(packageJsonPath)) {

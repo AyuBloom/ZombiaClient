@@ -25,6 +25,10 @@ tauri-plugin-http = "2"
 
 Helps you with debugging possible issues created from communication mismatch between the client and server. Run `pnpm run debug-socket -h` for more info.
 
+### `diff-archive.js`
+
+Compares versions of `app.js` located in the `./archive` directory using `git diff`. Run `pnpm run diff-archive -h` for more details.
+
 ## Project Structure
 ```
 Bamboo/

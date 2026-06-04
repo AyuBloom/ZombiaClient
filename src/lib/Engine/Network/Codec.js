@@ -678,15 +678,11 @@ export default class {
         this.decodeEntityAttributes(s, e, t, n, r);
       }
     }
-    let o;
     this.knownEntities = Object.keys(s);
-    if (this.game.ui?.components?.uiDevHud?.devEnabled === true) { // never has one, but ig
-      o = t.readUint16() / 100;
-    }
     return {
       tick: e,
       entities: s,
-      averageServerFrameTime: o,
+      averageServerFrameTime: void 0,
       byteSize: t.capacity(),
     };
   }
