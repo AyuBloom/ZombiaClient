@@ -52,6 +52,8 @@ jobs:
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           tagName: v__VERSION__
           releaseName: "MilkTea v__VERSION__"
@@ -71,3 +73,46 @@ jobs:
             src-tauri/target/release/bundle/deb/*.deb
             src-tauri/target/release/bundle/appimage/*.AppImage
           if-no-files-found: warn
+
+  publish-updater:
+    name: Generate & Publish Updater JSON
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Run Update Script
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node tools/update-updater.js
+
+      - name: Deploy Updater JSON to updater branch
+        run: |
+          VERSION=$(node -p "JSON.parse(require('fs').readFileSync('package.json', 'utf8')).version")
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Move updater.json out of git tree
+          mv updater.json /tmp/updater.json
+          
+          # Fetch and checkout updater branch if it exists, otherwise create it as an orphan
+          if git fetch origin updater; then
+            git checkout updater
+            git reset --hard origin/updater
+            git clean -fdx
+          else
+            git checkout --orphan updater
+            git rm -rf . --ignore-unmatch
+            git reset
+          fi
+          
+          # Bring updater.json back
+          mv /tmp/updater.json updater.json
+          
+          # Commit and push
+          git add updater.json
+          git commit -m "Update updater.json to v$VERSION"
+          git push origin updater --force

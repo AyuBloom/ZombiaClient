@@ -34,6 +34,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_macos_fps::init())
         // .plugin(tauri_plugin_websocket::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .invoke_handler(tauri::generate_handler![get_memory_usage])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
