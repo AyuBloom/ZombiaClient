@@ -1,9 +1,10 @@
 import { EventEmitter } from "events";
-// import DiscordRichPresence from "discord-rich-presence";
-
+import { getCurrentWindow } from '@tauri-apps/api/window';
 import { check } from "@tauri-apps/plugin-updater";
-import { ask, message } from "@tauri-apps/plugin-dialog";
+import { ask } from "@tauri-apps/plugin-dialog";
 import { relaunch } from "@tauri-apps/plugin-process";
+// import { spawn, stop, setActivity, clearActivity } from "tauri-plugin-drpc";
+// import { Timestamps, Activity } from "tauri-plugin-drpc/activity";
 
 // import { DISCORD_APP_ID } from "$lib/id.json";
 import UI from "$lib/Components/UI/UI.svelte.js";
@@ -26,7 +27,6 @@ export default new (class {
     this.eventEmitter = new EventEmitter();
     this.eventEmitter.setMaxListeners(100);
 
-    // this.discord = DiscordRichPresence(DISCORD_APP_ID);
     this.pools = new Map();
   }
   async checkForAppUpdates() {
@@ -61,13 +61,38 @@ export default new (class {
     this.inputPacketManager.init();
 
     /*
-    this.discord.updatePresence({
-      state: "zamb bee ahh dot eye ohh",
-      details: "on a tauri client",
-      startTimestamp: Date.now(),
-      instance: true,
-    });
+    await spawn(DISCORD_APP_ID);
+    await setActivity(new Activity()
+      .setState("Playing Zombia.io")
+      .setDetails("yo")
+      .setTimestamps(new Timestamps(Date.now()))
+    );
     */
+
+    const appWindow = getCurrentWindow();
+    await appWindow.onCloseRequested(async (event) => {
+      if (game.getInWorld()) {
+        event.preventDefault();
+
+        const confirmed = await ask(
+          'Changes you made may not be saved.',
+          {
+            title: "Leave game?",
+            kind: "warning",
+            okLabel: "Leave",
+            cancelLabel: "Stay",
+          }
+        );
+
+        if (confirmed) {
+          await appWindow.destroy();
+          /*
+          await clearActivity();
+          await stop();
+          */
+        }
+      }
+    });
   }
   getInWorld() {
     return this.network.connected;

@@ -7,6 +7,8 @@
   ],
   "permissions": [
     "core:default",
+    "core:window:allow-close",
+    "core:window:allow-destroy",
     "updater:default",
     "opener:default",
     "svelte:default",
@@ -22,6 +24,7 @@
     },
     "dialog:default",
     "process:default",
-    "process:allow-restart"
+    "process:allow-restart",
+    "drpc:default"
   ]
 }
