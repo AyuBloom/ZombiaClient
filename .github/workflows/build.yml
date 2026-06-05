@@ -56,7 +56,7 @@ jobs:
           tagName: v__VERSION__
           releaseName: "MilkTea v__VERSION__"
           releaseBody: "Automated multi-platform build for MilkTea. See assets below for builds for each platform."
-          releaseDraft: true
+          releaseDraft: false
           prerelease: false
 
       - name: Upload Build Artifacts (Workflow Run)
