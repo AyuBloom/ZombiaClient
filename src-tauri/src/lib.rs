@@ -26,6 +26,8 @@ fn get_memory_usage(state: tauri::State<'_, SystemState>) -> Result<u64, String>
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_process::init())
+        .plugin(tauri_plugin_dialog::init())
         .manage(SystemState {
             sys: Mutex::new(System::new()),
         })

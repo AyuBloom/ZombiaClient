@@ -1,6 +1,6 @@
 {
   "name": "milktea-zombia-client",
-  "version": "0.8.4",
+  "version": "0.8.5",
   "description": "",
   "type": "module",
   "scripts": {
@@ -26,8 +26,10 @@
     "@tailwindcss/postcss": "^4.3.0",
     "@tailwindcss/vite": "^4.3.0",
     "@tauri-apps/api": "^2.11.0",
+    "@tauri-apps/plugin-dialog": "~2.7.1",
     "@tauri-apps/plugin-http": "^2.5.9",
     "@tauri-apps/plugin-opener": "^2.5.4",
+    "@tauri-apps/plugin-process": "~2.3.1",
     "@tauri-apps/plugin-updater": "~2.10.1",
     "@tauri-store/svelte": "^3.2.0",
     "browser-hrtime": "^1.1.8",
@@ -41,6 +43,7 @@
     "pixi.js": "^8.18.1",
     "postcss": "^8.5.15",
     "tailwindcss": "^4.3.0",
+    "tauri-plugin-drpc": "^1.0.3",
     "tippy.js": "^6.3.7",
     "ws": "^8.21.0"
   },

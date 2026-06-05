@@ -1,6 +1,10 @@
 import { EventEmitter } from "events";
 // import DiscordRichPresence from "discord-rich-presence";
 
+import { check } from "@tauri-apps/plugin-updater";
+import { ask, message } from "@tauri-apps/plugin-dialog";
+import { relaunch } from "@tauri-apps/plugin-process";
+
 // import { DISCORD_APP_ID } from "$lib/id.json";
 import UI from "$lib/Components/UI/UI.svelte.js";
 import Renderer from "./Renderer/Renderer.svelte.js";
@@ -25,7 +29,31 @@ export default new (class {
     // this.discord = DiscordRichPresence(DISCORD_APP_ID);
     this.pools = new Map();
   }
+  async checkForAppUpdates() {
+    const update = await check();
+
+    if (update) {
+      const yes = await ask(`
+          ${update.version} now is available!
+          Release notes: ${update.body}
+        `,
+        {
+          title: "New Update",
+          kind: "info",
+          okLabel: "Update",
+          cancelLabel: "Cancel",
+        }
+      );
+
+      if (yes) {
+        await update.downloadAndInstall();
+        await relaunch();
+      }
+    }
+  }
   async init() {
+    await this.checkForAppUpdates();
+
     await this.renderer.init();
     this.ui.init();
     this.network.init();

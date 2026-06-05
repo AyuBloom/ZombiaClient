@@ -19,6 +19,9 @@
           "url": "https://zombia.io/*"
         }
       ]
-    }
+    },
+    "dialog:default",
+    "process:default",
+    "process:allow-restart"
   ]
 }
