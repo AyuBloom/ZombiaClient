@@ -1,19 +1,19 @@
 {
-  "version": "0.8.6",
+  "version": "0.8.7",
   "notes": "Automated multi-platform build for MilkTea. See assets below for builds for each platform.",
-  "pub_date": "2026-06-05T07:31:49Z",
+  "pub_date": "2026-06-05T15:10:29Z",
   "platforms": {
     "linux-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUdWFQY1lXVlh0TlV2bWFDUW1uNk1mMTV0YkpUcDBkVmxqY1pmMjZPRWIzNlk3WUkzS1FUTm4yemRwOVZhMUhJb1RERnpCM0ZLeWNDV1kyQnp2bEQxTTJ1ZUd1NmdBeGc4PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzgwNjcxOTQ3CWZpbGU6TWlsa1RlYV8wLjguNl9hbWQ2NC5BcHBJbWFnZQpmZWZOeFE5MlU3L2pXaTA2cndNcHA4eEZRazcwSFRMUkZ6R3dmeDhlb0VSNW5FbWZnQTZZUnhROWpHUDRlaDd5OW9EelljaW1La3FzTE1Jd3FQU0NDZz09Cg==",
-      "url": "https://github.com/AyuBloom/MilkTea/releases/download/v0.8.6/MilkTea_0.8.6_amd64.AppImage"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUdWFQY1lXVlh0TlROVUdqZjR1Vmcxd1I5bWREQW9kbndDQytOWkZkUzlDZWhQWThjOEhJVjg3MVFZamlJeklxUHJSSWJQd3JBR1pGd3Y1UktuMHU4UXA3Q2hCWGt5MndBPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzgwNjcyMzYyCWZpbGU6TWlsa1RlYV8wLjguN19hbWQ2NC5BcHBJbWFnZQp2Z05Ca0hXNmJObTVVRzYvMHlXYTdmT0pJNFE5WFJTSFBYdUZnRDdIZm1ocGxwQ25XZHpNVmgxcHNvR1NXMUxXMmpIUlJrQStxVlEvZzZDNGxBZk5EQT09Cg==",
+      "url": "https://github.com/AyuBloom/MilkTea/releases/download/v0.8.7/MilkTea_0.8.7_amd64.AppImage"
     },
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUdWFQY1lXVlh0TmNwbXB6UXRZbWhOTERrUjRHQy8xZEhHSWhyODlDbW9pOWsydU5QUmFobmpaZTVVR0hML3JRRS9mdFZQNFRQR0REbzJuSnJXY0pxc1pQeVpqTFlUYVE0PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzgwNjcxOTcxCWZpbGU6TWlsa1RlYV8wLjguNl94NjQtc2V0dXAuZXhlClA3cGR5UjdnS05WbmROL2xicjVncUZUdTF3d2gybWRyWEJiNllrRWdHaUVYSTZ3K1BYbGZkanUwdlJ6aHZmZmZNZVJLQ0NSKzF3d1piRWMwKzZMOUJnPT0K",
-      "url": "https://github.com/AyuBloom/MilkTea/releases/download/v0.8.6/MilkTea_0.8.6_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUdWFQY1lXVlh0TlZiYzhBZHZUYk95eUxnTkNSdjBKNUw3d2JBN1p1ZGM2UjVtVEtrVXFMeFJtTjl3Tld3cVpBVlE0aERjR3FNbmV3OVpWK3JIamVDSkZTUWNTSDM0cHdRPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzgwNjcyMzQ3CWZpbGU6TWlsa1RlYV8wLjguN194NjQtc2V0dXAuZXhlCmsrM25mOHF5QTlWWDVVT1FHaEJEdHBUSXcrZlQ0SFFjVHFFbkM3aTMrYy94L3JrcEhEOGlQWjBLdGlCN3E5alVJUUpLSnl2Z1JRencwTGt3SzNjVkJnPT0K",
+      "url": "https://github.com/AyuBloom/MilkTea/releases/download/v0.8.7/MilkTea_0.8.7_x64-setup.exe"
     },
     "darwin-aarch64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUdWFQY1lXVlh0Tlg4NUIxc0RsMTh5SW1ndFd4Y0loMkljVkFTcjhFTVo3Mk1uL2JENVZMbnhkejB6MEJMRW14L0xKTWpjb1dBTEl4VXpLUWNWdlZTNWJnQWFIeUNiZ2d3PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzgwNjcxODg5CWZpbGU6TWlsa1RlYS5hcHAudGFyLmd6ClQ1U0daenRkMWh6SWJOMk9ZVGZIdnhCUXlJbmFGaTdDam5rVFRQOXZNNVcvS1dXM3FIaFREdzViUUlkb3RYbHh6dlZhMXR4Nm1ob09UcXJRMGdpNUNRPT0K",
-      "url": "https://github.com/AyuBloom/MilkTea/releases/download/v0.8.6/MilkTea_aarch64.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUdWFQY1lXVlh0TmJMOUFKSUtMQytwMEl2bTB5WmVONDdkWTIzenJsV3gySkNrVzJKbytxS2Z1Q0pqWXFWRTNyZUhVMVZveUoyZHJORmFEQkFsRGNySGdnaGw4M1kyMkFNPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzgwNjcyMjI4CWZpbGU6TWlsa1RlYS5hcHAudGFyLmd6Cis5MWFYUzZWaGN6eDA0UzZ0WmlhREF1YlpKbGdlSUZlMlpmOFFmTkFrc1hGNnVCYWtiT2hTRTNmQTI4VWNpWEs4UEdrK3ZzWmJNT21jejRNZE9rckNBPT0K",
+      "url": "https://github.com/AyuBloom/MilkTea/releases/download/v0.8.7/MilkTea_aarch64.app.tar.gz"
     }
   }
 }
