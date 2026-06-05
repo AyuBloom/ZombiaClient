@@ -14,7 +14,15 @@
 Milk Tea (stylized as MilkTea) is a project that aims to create an alternative client for the web-based survival game [zombia.io](https://zombia.io). A work in progress 🚧
 
 ## Install
-Get the binaries from the releases page!
+Get the binaries from the [Releases](https://github.com/AyuBloom/MilkTea/releases/latest) page!
+
+### For macOS Users
+When you encounter this error: `"MilkTea.app" is damaged and can't be opened.`, it is because to notarize the app, I need a $99/year certificate from Apple and I am NOT paying that.
+
+To fix it, run this command after you have placed the app in the Applications folder:
+```sh
+xattr -d com.apple.quarantine /Applications/MilkTea.app
+```
 
 ## Development
 
