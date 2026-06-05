@@ -143,7 +143,6 @@ export default class extends Node {
         case "MageProjectile":
         case "ArrowProjectile":
         case "CannonProjectile":
-        case "BombProjectile":
           e = "Projectile";
           break;
         default:
@@ -157,7 +156,12 @@ export default class extends Node {
     if ("Rocket" == this.targetTick.projectileKind) {
       e = "RocketProjectile";
     }
-    this.currentModel = new EntityModels[e](this.game, this.targetTick);
+    const ModelClass = EntityModels[e];
+    if (ModelClass && ModelClass.isPoolable) {
+      this.currentModel = ModelClass.getOrCreate(this.game, this.targetTick);
+    } else {
+      this.currentModel = new EntityModels[e](this.game, this.targetTick);
+    }
     this.currentModel.modelName = e;
     this.currentModel.setParent(this);
     this.setNode(this.currentModel.getNode());

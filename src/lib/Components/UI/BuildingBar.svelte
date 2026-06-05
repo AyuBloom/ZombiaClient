@@ -64,7 +64,7 @@
                 <img
                     class="lg:w-10 lg:h-10 w-8 h-8"
                     alt={tower}
-                    src="/images/Ui/Buildings/{tower}/{tower}Tier1.svg"
+                    src="/images/Ui/Buildings/{tower}/{tower}Tier{tower == "Factory" ? 1 : game.ui?.factory?.tier ? game.ui.factory.tier : 1}.svg"
                 />
                 <span class="absolute bottom-0 right-1 font-bold text-xs text-white/70"
                     >{game.ui.buildingData[tower].hotkey}</span

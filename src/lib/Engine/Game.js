@@ -7,6 +7,7 @@ import Renderer from "./Renderer/Renderer.svelte.js";
 import Network from "./Network/Network.svelte.js";
 import Util from "./Util.svelte.js";
 import InputPacketManager from "./InputPacketManager.svelte.js";
+import EntityModels from "$lib/Models/EntityModels.js";
 
 export default new (class {
   constructor() {
@@ -22,6 +23,7 @@ export default new (class {
     this.eventEmitter.setMaxListeners(100);
 
     // this.discord = DiscordRichPresence(DISCORD_APP_ID);
+    this.pools = new Map();
   }
   async init() {
     await this.renderer.init();
@@ -41,5 +43,33 @@ export default new (class {
   }
   getInWorld() {
     return this.network.connected;
+  }
+  getPool(ModelClass, args) {
+    if (!this.pools.has(ModelClass)) {
+      this.pools.set(ModelClass, new Map());
+    }
+    const subMap = this.pools.get(ModelClass);
+    const variantKey = args?.projectileKind || "default";
+    if (!subMap.has(variantKey)) {
+      subMap.set(variantKey, []);
+    }
+    return subMap.get(variantKey);
+  }
+  poolModel(ModelClass, args, amount) {
+    const pool = this.getPool(ModelClass, args);
+    for (let i = 0; i < amount; i++) {
+      const instance = new ModelClass(this, args);
+      instance.savedAttachments = instance.attachments;
+      instance.attachments = [];
+      pool.push(instance);
+    }
+    console.log(`Initialized dynamic projectile pool for ${ModelClass.name} (${amount} instances).`);
+  }
+  initializePools() {
+    const kinds = ["Mage", "Arrow", "Cannon"];
+    for (const kind of kinds) {
+      this.poolModel(EntityModels.Projectile, { projectileKind: kind }, 50);
+    }
+    this.poolModel(EntityModels.RocketProjectile, { tier: 1 }, 50);
   }
 })();

@@ -8,7 +8,7 @@
         "Damage To Players": "damageToPlayers",
         "Harvest Amount": "harvestAmount",
         "Firing Rate": "msBetweenFires",
-        "Health Regen/sec": "healthRegenPerSecond",
+        "Health Regen / Second": "healthRegenPerSecond",
         "Max Health": "health",
     };
 
@@ -92,50 +92,48 @@
 {/snippet}
 
 {#snippet Stats()}
-    {#if currentHover}
-        {@const currentTier = tools[currentHover] || 0}
-        {@const isBought = currentTier >= 1}
-        <!-- {@const isMax = isBought && currentTier >= toolData[currentHover].tiers} -->
-        <div class="flex flex-col gap-2 mt-4">
-            {#each Object.entries(stats) as [name, prop]}
-                {#if toolData[currentHover][prop]}
-                    {@const currentTierStat =
-                        toolData[currentHover][prop][currentTier - 1]}
-                    {@const nextTierStat = toolData[currentHover][prop][currentTier]}
-                    {@const isDifferent = nextTierStat != currentTierStat}
-                    {@const isPercentage =
-                        prop == "damageToBuildings" && currentHover == "Sword"}
-                    {@const isMilisecond = prop == "msBetweenFires"}
-                    <p class="text-white font-bold">{name}:</p>
-                    <p class="-mt-1">
-                        {#if isBought}
-                            {#if isPercentage}
-                                {currentTierStat * 100 + "%"}
-                            {:else if isMilisecond}
-                                {currentTierStat + "ms"}
-                            {:else}
-                                {currentTierStat}
-                            {/if}
+    {@const currentTier = tools[currentHover] || 0}
+    {@const isBought = currentTier >= 1}
+    <!-- {@const isMax = isBought && currentTier >= toolData[currentHover].tiers} -->
+    <div class="flex flex-col gap-2 mt-4">
+        {#each Object.entries(stats) as [name, prop]}
+            {#if toolData[currentHover][prop]}
+                {@const currentTierStat =
+                    toolData[currentHover][prop][currentTier - 1]}
+                {@const nextTierStat = toolData[currentHover][prop][currentTier]}
+                {@const isDifferent = nextTierStat != currentTierStat}
+                {@const isPercentage =
+                    prop == "damageToBuildings" && currentHover == "Sword"}
+                {@const isMilisecond = prop == "msBetweenFires"}
+                <p class="text-white font-bold">{name}</p>
+                <p class="-mt-1">
+                    {#if isBought}
+                        {#if isPercentage}
+                            {currentTierStat * 100 + "%"}
+                        {:else if isMilisecond}
+                            {currentTierStat + "ms"}
+                        {:else}
+                            {currentTierStat}
                         {/if}
-                        {#if isBought && isDifferent}
-                            <!-- && !isMax -->
-                            &nbsp;→&nbsp;
+                    {/if}
+                    {#if isBought && isDifferent}
+                        <!-- && !isMax -->
+                        &nbsp;→&nbsp;
+                    {/if}
+                    {#if isDifferent}
+                        <!-- && !isMax -->
+                        {#if isPercentage}
+                            {nextTierStat * 100 + "%"}
+                        {:else if isMilisecond}
+                            {nextTierStat + "ms"}
+                        {:else}
+                            {nextTierStat}
                         {/if}
-                        {#if isDifferent}
-                            <!-- && !isMax -->
-                            {#if isPercentage}
-                                {nextTierStat * 100 + "%"}
-                            {:else if isMilisecond}
-                                {nextTierStat + "ms"}
-                            {:else}
-                                {nextTierStat}
-                            {/if}
-                        {/if}
-                    </p>
-                {/if}
-            {/each}
-        </div>
-    {/if}
+                    {/if}
+                </p>
+            {/if}
+        {/each}
+    </div>
 {/snippet}
 
 {#if game.ui.isDisplayingMenu == "Shop"}
@@ -190,9 +188,13 @@
                     {/if}
                 {/each}
             </div>
-            <div class="p-2 basis-2/5 text-white/70 text-xs">
-                <p>{description}</p>
-                {@render Stats()}
+            <div class="p-2 bg-black/10 basis-2/5 text-white/70 text-xs">
+                {#if currentHover}
+                    <strong class="text-white text-xs">Description</strong>
+                    <p>{description}</p>
+
+                    {@render Stats()}
+                {/if}
             </div>
         </div>
     </div>

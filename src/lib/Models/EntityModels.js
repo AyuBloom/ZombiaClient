@@ -366,8 +366,11 @@ export default {
     }
   },
   Projectile: class extends Model {
+    static isPoolable = true;
+
     constructor(game, t) {
       super(game);
+      this.projectileKind = t.projectileKind;
       this.base = new SpriteNode(
         this.game,
         `./static/images/Entity/Projectile/${t.projectileKind}Projectile.svg`,
@@ -525,6 +528,8 @@ export default {
     }
   },
   RocketProjectile: class extends Model {
+    static isPoolable = true;
+
     constructor(game, t) {
       super(game);
       this.tier = t.tier;

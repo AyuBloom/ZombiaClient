@@ -158,6 +158,11 @@ export default class {
       console.log(
         `Time taken to preload ${i.length} assets: ${performance.now() - t}ms`,
       );
+      try {
+        this.game.initializePools();
+      } catch (err) {
+        console.error("Failed to initialize projectile pools:", err);
+      }
       // document.getElementById("hud-intro-play").classList.remove("is-disabled"),
       i.length = 0;
     });
