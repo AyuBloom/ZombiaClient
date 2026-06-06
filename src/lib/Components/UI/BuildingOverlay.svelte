@@ -20,6 +20,8 @@
         "Max Drone Count": "maxDrones",
     };
 
+    const UINT32_MAX = 4294967295;
+
     let isInit = false;
     let maxFactoryDistance = $state(0);
 
@@ -202,11 +204,13 @@
         }
     }
 
+    // for some reason the targetResourceUid is set to UINT32_MAX when the target is cleared
+    // weird but okay
     function toggleHarvesterTargetDisplay(t) {
         t.stopPropagation();
         if (1 === t.which) {
             if (
-                0 ==
+                UINT32_MAX ==
                 game.renderer.world.entities[buildingUid].targetTick.targetResourceUid
             ) {
                 displayingHarvesterRange = true;
@@ -215,7 +219,7 @@
                 game.network.sendRpc({
                     name: "UpdateHarvesterTarget",
                     harvesterUid: buildingUid,
-                    targetUid: 0,
+                    targetUid: UINT32_MAX,
                 });
             }
             shouldUpdateRanges = true;
@@ -599,7 +603,7 @@
                 <button
                     onclick={(t) => toggleHarvesterTargetDisplay(t)}
                     class="flex-1 bg-accent-gold"
-                    >{0 ==
+                    >{UINT32_MAX ==
                     game.renderer.world.entities[buildingUid].targetTick.targetResourceUid
                         ? "Set"
                         : "Clear"} Target</button

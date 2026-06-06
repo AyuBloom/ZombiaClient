@@ -24,7 +24,8 @@
 
         const t = [];
         for (let toolName in tools) {
-            false !== tools[toolName] && t.push(toolName);
+            if (tools[toolName] != false) // loose check, because tools[toolName] can be 0 or false
+                t.push(toolName);
         }
         let shouldEquip = t[0],
             foundCurrent = false;
@@ -44,7 +45,8 @@
     });
     game.eventEmitter.on("SetToolRpcReceived", (t) => {
         for (const e of t)
-            void 0 !== tools[e.toolName] && (tools[e.toolName] = e.toolTier);
+            if (void 0 !== tools[e.toolName])
+                tools[e.toolName] = e.toolTier;
     });
 </script>
 

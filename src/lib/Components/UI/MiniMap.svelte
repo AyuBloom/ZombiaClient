@@ -18,7 +18,7 @@
     */
 
     let playerData = $state({});
-    let buildingData = $state({});
+    let buildingData = $derived(game.ui.buildings);
 
     const COLOR_BY_INDEX = ["#0096FF", "#8473d4", "#2ee322", "#e69050"];
 
@@ -32,7 +32,6 @@
             }
             const n = (entity.getPositionX() / game.renderer.worldSize.x) * 100,
                 i = (entity.getPositionY() / game.renderer.worldSize.y) * 100;
-            // e.marker.setAttribute("data-index", e.index.toString());
             player.shouldShow = true;
             player.position.x = n;
             player.position.y = i;
@@ -71,13 +70,6 @@
             playerData[uid] && delete playerData[uid];
         }
     });
-    /*
-    game.eventEmitter.on("BuildingsUpdated", this.onBuildingsUpdate.bind(this));
-    */
-    game.eventEmitter.on("EnterWorldResponse", () => {
-        // this.buildingElems[t].remove(),
-        for (let t in buildingData) delete buildingData[t];
-    });
 </script>
 
 <div
@@ -89,6 +81,12 @@
             style="background: {COLOR_BY_INDEX[player.index] || "#eee"};display: {player.shouldShow
                 ? 'block'
                 : 'none'}; left: {player.position.x}%; top: {player.position.y}%;"
+        ></div>
+    {/each}
+    {#each Object.values(buildingData) as building}
+        <div
+            class="absolute block bg-accent-brown w-0.5 h-0.5 -mt-px -ml-px z-1"
+            style="left: {building.x / game.renderer.worldSize.x * 100}%; top: {building.y / game.renderer.worldSize.y * 100}%;"
         ></div>
     {/each}
 </div>

@@ -12,7 +12,7 @@
 
     let announcedNight = false;
 
-    let defaultStartingWave = $derived(gameOptions.mode == "standard" ? 0 : 15);
+    let defaultStartingWave = $derived(gameOptions.state.mode == "standard" ? 0 : 15);
     let cumulativeWave = $state(0);
     let nextWave = $state(0);
 
