@@ -343,18 +343,21 @@ export default class {
   }
 
   sync(outOfSync = false) {
-    if (1 == this.game.network.connected) {
+    const conn = this.instance || this.game.network;
+    if (1 == conn.connected) {
       if (this.packetArr.length >= this.packetCountLimit || outOfSync) {
         console.log("Tab was hidden for too long. Reporting as desynced.");
         this.packetArr.length = 0;
         this.knownEntities = [];
 
-        this.game.renderer.onServerDesync();
-        this.game.renderer.world.onServerDesync();
-        this.game.renderer.replicator.onServerDesync();
+        if (!this.instance || this.game.network.activeInstanceId === this.instance.id) {
+          this.game.renderer.onServerDesync();
+          this.game.renderer.world.onServerDesync();
+          this.game.renderer.replicator.onServerDesync();
+        }
 
         this.outOfSync = true;
-        this.game.network.sendRpc({
+        conn.sendRpc({
           name: "OutOfSync",
         });
         return;
@@ -364,7 +367,12 @@ export default class {
         `Resyncing socket! Decoding ${this.packetArr.length} packets...`,
       );
       while (this.packetArr.length > 0) {
-        this.game.network.handleEntityUpdate(this.decode(this.packetArr[0]));
+        const decoded = this.decode(this.packetArr[0]);
+        if (this.instance) {
+          this.instance.handleEntityUpdate(decoded, this.game.network.activeInstanceId === this.instance.id);
+        } else {
+          this.game.network.handleEntityUpdate(decoded);
+        }
         this.packetArr.shift();
       }
     }
