@@ -25,6 +25,7 @@ export default class {
 
     this.isInit = false;
     this.initGrass = false;
+    this.skipRendering = false;
 
     this.renderingFilters = [];
     this.fadingAttachments = {};
@@ -332,7 +333,7 @@ export default class {
       }
     (null !== this.followingObject &&
       this.lookAtPosition(this.followingObject.getPosition()),
-      this.renderer.renderer.render(this.scene.getNode()),
+      !this.skipRendering && this.renderer.renderer.render(this.scene.getNode()),
       Math.round(100 * (performance.now() - e)) / 100 >= 10 &&
         this.longFrames++);
     for (let e of this.renderingFilters) e.update(t);

@@ -7,7 +7,6 @@
 
     // const MARGIN_TO_CENTER = 50;
 
-    console.log(gameOptions.state.playerName);
     let data = $state([]);
     game.eventEmitter.on("EnterWorldResponse", () => {
         data = [

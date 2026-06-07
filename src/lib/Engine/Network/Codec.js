@@ -368,10 +368,12 @@ export default class {
       );
       while (this.packetArr.length > 0) {
         const decoded = this.decode(this.packetArr[0]);
-        if (this.instance) {
-          this.instance.handleEntityUpdate(decoded, this.game.network.activeInstanceId === this.instance.id);
-        } else {
-          this.game.network.handleEntityUpdate(decoded);
+        if (decoded && decoded.opcode !== undefined) {
+          if (this.instance) {
+            this.instance.handleEntityUpdate(decoded, this.game.network.activeInstanceId === this.instance.id);
+          } else {
+            this.game.network.handleEntityUpdate(decoded);
+          }
         }
         this.packetArr.shift();
       }
@@ -392,7 +394,7 @@ export default class {
         this.encodeRpc(r, e);
         break;
       case 7:
-        this.setSync("visible" == document.visibilityState);
+        this.setSync(this.game.network.isWindowVisible());
         break;
     }
     r.flip();

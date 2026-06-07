@@ -1,4 +1,6 @@
 import Codec from "./Codec.js";
+import { listen, emit } from "@tauri-apps/api/event";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 
 class GameInstance {
   ping = $state();
@@ -77,6 +79,7 @@ class GameInstance {
     if (this.game.network.activeInstanceId === this.id) {
       this.game.eventEmitter.emit("SocketOpened");
     }
+    this.game.network.broadcastState(true);
   }
 
   onSocketClose() {
@@ -97,6 +100,7 @@ class GameInstance {
     if (this.game.network.activeInstanceId === this.id) {
       this.game.eventEmitter.emit("SocketClosed");
     }
+    this.game.network.broadcastState(true);
   }
 
   onSocketMessage(t) {
@@ -165,6 +169,7 @@ class GameInstance {
     if (isActive) {
       this.game.eventEmitter.emit("EnterWorldResponse", t);
     }
+    this.game.network.broadcastState(true);
   }
 
   handleEntityUpdate(t, isActive) {
@@ -180,7 +185,6 @@ class GameInstance {
       const myUid = this.enterWorldData.uid;
       const myEntity = t.entities[myUid];
       if (myEntity && myEntity !== true) {
-        // Merge attributes to playerTick
         this.playerTick = {
           ...this.playerTick,
           ...myEntity
@@ -191,6 +195,7 @@ class GameInstance {
     if (isActive) {
       this.game.eventEmitter.emit("EntityUpdate", t);
     }
+    this.game.network.broadcastState(false);
   }
 
   handleRpc(t, isActive) {
@@ -200,10 +205,14 @@ class GameInstance {
     if (t.name === "SetTool") {
       this.savedTools = t.response;
     }
+    if (t.name === "PartyKey") {
+      this.partyKey = t.response.partyKey;
+    }
 
     if (isActive) {
       this.game.eventEmitter.emit(`${t.name}RpcReceived`, t.response);
     }
+    this.game.network.broadcastState(true);
   }
 
   handlePing() {
@@ -213,12 +222,18 @@ class GameInstance {
     }
     this.pingStart = null;
     this.pingCompletion = t;
+    this.game.network.broadcastState(true);
+  }
+
+  onVisibilityChange() {
+    this.codec.setSync(this.game.network.isWindowVisible());
   }
 }
 
 export default class {
   instances = $state({});
   activeInstanceId = $state(null);
+  lastBroadcast = 0;
 
   get activeInstance() {
     return this.instances[this.activeInstanceId] || null;
@@ -263,10 +278,61 @@ export default class {
 
   constructor(game) {
     this.game = game;
+    this.hostWindowVisible = true;
+  }
+
+  isWindowVisible() {
+    return this.hostWindowVisible && document.visibilityState !== "hidden";
   }
 
   init() {
     document.onvisibilitychange = this.onVisibilityChange.bind(this);
+
+    // Set up Tauri IPC communication
+    listen("client-ready", () => {
+      this.broadcastState(true);
+    });
+
+    listen("client-spawn-alt", () => {
+      const active = this.activeInstance;
+      if (active) {
+        this.createInstance(active.name, active.partyKey, active.serverData);
+      }
+    });
+
+    listen("client-switch-control", (event) => {
+      this.switchInstance(event.payload.id);
+    });
+
+    listen("client-disconnect-alt", (event) => {
+      this.removeInstance(event.payload.id);
+    });
+
+    listen("client-toggle-visibility", async () => {
+      const appWindow = getCurrentWindow();
+      const isVisible = await appWindow.isVisible();
+      if (isVisible) {
+        await appWindow.hide();
+        this.hostWindowVisible = false;
+        this.game.renderer.skipRendering = true;
+      } else {
+        await appWindow.show();
+        await appWindow.setFocus();
+        this.hostWindowVisible = true;
+        this.game.renderer.skipRendering = false;
+
+        // Wait for the Webview layout reflow to complete, then trigger resize to restore WebGL canvas
+        setTimeout(() => {
+          if (this.game.renderer && typeof this.game.renderer.onWindowResize === "function") {
+            this.game.renderer.onWindowResize();
+          }
+        }, 100);
+      }
+      if (this.activeInstance) {
+        this.activeInstance.codec.setSync(this.isWindowVisible());
+      }
+      this.broadcastState(true);
+    });
   }
 
   setConnectionData(t, e, r) {
@@ -281,12 +347,14 @@ export default class {
       active.serverData = r;
       active.options = { name: t, partyKey: e, serverData: r };
     }
+    this.broadcastState(true);
   }
 
   connect() {
     if (this.activeInstance) {
       this.activeInstance.connect();
     }
+    this.broadcastState(true);
   }
 
   onVisibilityChange() {
@@ -319,6 +387,7 @@ export default class {
     const instance = new GameInstance(this.game, id, name, partyKey, serverData);
     this.instances[id] = instance;
     instance.connect();
+    this.broadcastState(true);
     return instance;
   }
 
@@ -341,6 +410,7 @@ export default class {
         }
       }
     }
+    this.broadcastState(true);
   }
 
   switchInstance(id) {
@@ -359,32 +429,69 @@ export default class {
     this.activeInstanceId = id;
 
     // Rebind new socket visibility sync
-    newInstance.codec.setSync("visible" == document.visibilityState);
+    newInstance.codec.setSync(this.isWindowVisible());
 
     // Reset visual world
     if (newInstance.enterWorldData) {
-      // 1. Reset World, UI, and Replicator visual states
       this.game.eventEmitter.emit("EnterWorldResponse", newInstance.enterWorldData);
 
-      // 2. Emit cached tools list
       if (newInstance.savedTools) {
         this.game.eventEmitter.emit("SetToolRpcReceived", newInstance.savedTools);
       }
 
-      // 3. Emit cached party members list
       if (newInstance.partyMembers && newInstance.partyMembers.length > 0) {
         this.game.eventEmitter.emit("PartyMembersUpdatedRpcReceived", newInstance.partyMembers);
       }
 
-      // 4. Set game UI playerTick immediately to avoid visual lag
       if (newInstance.playerTick) {
         this.game.ui.setPlayerTick(newInstance.playerTick);
       }
 
-      // 5. Trigger OutOfSync resync on the new connection to query current viewport entities
+      newInstance.codec.packetArr = [];
       newInstance.codec.knownEntities = [];
       newInstance.codec.outOfSync = true;
       newInstance.sendRpc({ name: "OutOfSync" });
+    }
+    this.broadcastState(true);
+  }
+
+  async broadcastState(force = false) {
+    const now = Date.now();
+    if (now - this.lastBroadcast < 200 && !force) return;
+    this.lastBroadcast = now;
+
+    try {
+      const appWindow = getCurrentWindow();
+      const isHostVisible = await appWindow.isVisible();
+
+      const serialized = Object.values(this.instances).map(inst => ({
+        id: inst.id,
+        name: inst.name,
+        connected: inst.connected,
+        connecting: inst.connecting,
+        ping: inst.ping,
+        serverData: inst.serverData,
+        stats: inst.playerTick ? {
+          health: inst.playerTick.health,
+          maxHealth: inst.playerTick.maxHealth,
+          wood: inst.playerTick.wood,
+          stone: inst.playerTick.stone,
+          gold: inst.playerTick.gold,
+          tokens: inst.playerTick.tokens,
+          wave: inst.playerTick.wave,
+          zombieShieldHealth: inst.playerTick.zombieShieldHealth,
+          zombieShieldMaxHealth: inst.playerTick.zombieShieldMaxHealth,
+        } : null
+      }));
+
+      emit("host-instances-update", {
+        instances: serialized,
+        activeInstanceId: this.activeInstanceId,
+        partyShareKey: this.activeInstance?.partyKey || "",
+        isHostVisible
+      });
+    } catch (err) {
+      console.warn("Failed to broadcast instances state:", err);
     }
   }
 }
