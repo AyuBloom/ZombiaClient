@@ -53,6 +53,11 @@
                     }}>Reload game</button
                 >
             </div>
+            <!--
+            <div class="flex grow flex-col-reverse">
+                <img class="opacity-30 grayscale invert transition hover:invert-0 hover:grayscale-0 hover:opacity-100 hover:saturate-125" alt="MilkTea banner" src="/milktea_banner.png" />
+            </div>
+            -->
         </div>
     </div>
 {/if}

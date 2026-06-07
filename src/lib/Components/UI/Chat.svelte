@@ -1,7 +1,11 @@
 <script>
     import { tick } from "svelte";
+    import tippy from "tippy.js";
+    import { gameSettings } from "$lib/Engine/shared.svelte";
 
     let { game } = $props();
+
+    const MESSAGE_LIMIT = 2;
 
     let isTyping = $state(false);
 
@@ -14,8 +18,19 @@
     let msg = $state("");
     let channel = $state(0);
 
+    // Keep track of active message contents
+    const seenMessages = new Set();
+
     game.eventEmitter.on("ReceiveChatMessageRpcReceived", async (t) => {
-        msgs.push({ ...t, date: Date.now() }); // <-- unsure if i want to add date
+        if (seenMessages.has(t.message)) return;
+
+        seenMessages.add(t.message);
+        msgs.push({ ...t, date: Date.now() });
+        // Limit to 500 if the toggle is enabled
+        if (gameSettings.state.deleteOldChat && msgs.length > MESSAGE_LIMIT) {
+            const removed = msgs.shift();
+            removed && seenMessages.delete(removed.message);
+        }
         await tick();
         if (chatBox) {
             chatBox.scrollTop = chatBox.scrollHeight;
@@ -45,6 +60,26 @@
     game.eventEmitter.on("mouseDown", () => {
         1 == isTyping && (isTyping = false);
     });
+
+    $effect(() => {
+        if (gameSettings.state.deleteOldChat && msgs.length > MESSAGE_LIMIT) {
+            // keep only the latest 500 messages
+            msgs = msgs.slice(-MESSAGE_LIMIT);
+            // rebuild so it only contains active message contents
+            seenMessages.clear();
+            for (const m of msgs) {
+                seenMessages.add(m.message);
+            }
+        }
+    });
+
+    function tooltip(node, fn) {
+        $effect(() => {
+            const tooltip = tippy(node, fn());
+
+            return tooltip.destroy;
+        });
+    }
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
@@ -55,20 +90,48 @@
 >
     <div class="min-w-78 w-78 h-48 overflow-x-hidden overflow-y-auto" bind:this={chatBox}>
         {#each msgs as { channel, message, name, date }}
-            <p
-                style="word-wrap: anywhere;"
-                class="flex flex-row gap-1 relative mb-1 text-xs"
+            <!--
+            <div
+                class="flex flex-row items-start gap-1 relative mb-1 text-xs"
             >
                 <strong
-                    style="word-wrap: initial;"
                     class="{channel == 'All'
                         ? 'text-accent-red'
-                        : 'text-accent-green'} font-bold">[{channel}]</strong
+                        : 'text-accent-green'} font-bold whitespace-nowrap">[{channel}]</strong
                 >
-                <span style="word-wrap: initial;" class="font-bold">{name}:</span>
+                <span class="font-bold whitespace-nowrap">{name}:</span>
+                <p class="break-all min-w-0 flex-1">{message}</p>
+            </div>
+            -->
+            <!-- <span class="absolute opacity-70">{new Date(date).toLocaleDateString()}</span> -->
+            <div
+                onselectstart={(t) => {
+                    t.stopPropagation();
+                }}
+                onmousedown={(t) => {
+                    t.stopPropagation();
+                }}
+                onmouseup={(t) => {
+                    t.stopPropagation();
+                }}
+                use:tooltip={() => {
+                    return {
+                        content: `<strong>${new Date(date).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}</strong>`,
+                        allowHTML: true,
+                        animation: false,
+                    };
+                }}
+                class="mb-1 text-xs break-all">
+                <strong
+                    class="{channel == 'All'
+                        ? 'text-accent-red'
+                        : 'text-accent-green'} font-bold whitespace-nowrap"
+                >
+                    [{channel}]
+                </strong>
+                <span class="font-bold whitespace-nowrap">{name}:</span>
                 {message}
-                <!-- <span class="absolute opacity-70">{new Date(date).toLocaleDateString()}</span> -->
-            </p>
+            </div>
         {/each}
     </div>
     <div
