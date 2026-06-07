@@ -7,6 +7,7 @@ import { relaunch } from "@tauri-apps/plugin-process";
 // import { Timestamps, Activity } from "tauri-plugin-drpc/activity";
 
 // import { DISCORD_APP_ID } from "$lib/id.json";
+import { gameOptions, gameSettings } from "$lib/Engine/shared.svelte.js";
 import UI from "$lib/Components/UI/UI.svelte.js";
 import Renderer from "./Renderer/Renderer.svelte.js";
 import Network from "./Network/Network.svelte.js";
@@ -47,6 +48,13 @@ export default new (class {
 
       if (yes) {
         await update.downloadAndInstall();
+
+        // there may be new options,
+        // and there's no easy way to refresh old files
+        // so we do this       vvv
+        await gameOptions.destroy();
+        await gameSettings.destroy();
+
         await relaunch();
       }
     }

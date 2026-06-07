@@ -17,6 +17,21 @@
                         game.ui.PlacementOverlay.startPlacing(buildingData.name);
                     },
                 );
+            // we will handle the case for LargeWall and SpikeTrap
+            } else if (["LargeWall", "SpikeTrap"].indexOf(buildingData.name) > -1) {
+                let hotkey;
+                switch (buildingData.name) {
+                    case "LargeWall":
+                        hotkey = "1";
+                        break;
+                    case "SpikeTrap":
+                        hotkey = "2";
+                        break;
+                }
+                buildingData.hotkey = `⇧${hotkey}`
+                game.eventEmitter.on(`${hotkey.charCodeAt(0)}Up`, (e) => {
+                    e.shiftKey && game.ui.PlacementOverlay.startPlacing(buildingData.name);
+                });
             }
         }
     });

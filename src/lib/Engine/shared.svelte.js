@@ -8,6 +8,7 @@ export let gameOptions = new RuneStore("intro-config", {
 
   needsRestart: {
     "Enable Antialiasing": true,
+    "Enable Low Resolution": false,
   },
 });
 

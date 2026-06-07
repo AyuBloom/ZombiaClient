@@ -11,14 +11,13 @@ const { Application, Assets, Ticker } = PIXI;
 import Replicator from "./Replicator.js";
 import World from "./World.js";
 
-import { gameOptions } from "../shared.svelte.js";
+import { gameOptions, gameSettings } from "$lib/Engine/shared.svelte.js";
 
 import Static from "$lib/static.js";
 
 const SPRITE_SHEET = Static.SPRITE_SHEET;
 
 export default class {
-  isWebGl = $state(false);
   constructor(game) {
     this.game = game;
 
@@ -62,6 +61,7 @@ export default class {
 
     await this.initialiseRendererInstance();
     this.isWebGL = this.renderer.renderer instanceof PIXI.WebGLRenderer;
+    this.pixelRatio = gameOptions.state.needsRestart["Enable Low Resolution"] ? 1 : window.devicePixelRatio;
 
     this.replicator = new Replicator(this.game);
     this.world.init();
@@ -279,7 +279,7 @@ export default class {
         : t instanceof TextNode && (r = "uiLayer");
     if (
       1 == e &&
-      true /* 0 == dr.settings.specialEffectsDisabled */ &&
+      1 == gameSettings.state.specialEffects &&
       1 == t.currentModel?.hasDeathFadeEffect
     ) {
       let e = this.generateFadingAttachmentId();
@@ -355,8 +355,8 @@ export default class {
   }
   onWindowResize() {
     if (null == this.ticker || 0 == this.ticker?.started) return;
-    const t = window.innerWidth * window.devicePixelRatio,
-      e = window.innerHeight * window.devicePixelRatio,
+    const t = window.innerWidth * this.pixelRatio,
+      e = window.innerHeight * this.pixelRatio,
       r = Math.max(
         t / (1920 * this.zoomDimension),
         e / (1080 * this.zoomDimension),
@@ -371,8 +371,8 @@ export default class {
       this.lookAtPosition(this.followingObject.getPosition());
   }
   lookAtPosition({ x: t, y: e }) {
-    const r = (window.innerWidth * window.devicePixelRatio) / 2,
-      n = (window.innerHeight * window.devicePixelRatio) / 2;
+    const r = (window.innerWidth * this.pixelRatio) / 2,
+      n = (window.innerHeight * this.pixelRatio) / 2;
 
     t *= this.scale;
     e *= this.scale;
@@ -398,8 +398,8 @@ export default class {
       (r *= 1 / this.scale),
       (n *= 1 / this.scale),
       {
-        x: r + (t *= (1 / this.scale) * window.devicePixelRatio),
-        y: n + (e *= (1 / this.scale) * window.devicePixelRatio),
+        x: r + (t *= (1 / this.scale) * this.pixelRatio),
+        y: n + (e *= (1 / this.scale) * this.pixelRatio),
       }
     );
   }
@@ -422,8 +422,8 @@ export default class {
       (r *= 1 / this.scale),
       (n *= 1 / this.scale),
       {
-        x: (t - r) * this.scale * (1 / window.devicePixelRatio),
-        y: (e - n) * this.scale * (1 / window.devicePixelRatio),
+        x: (t - r) * this.scale * (1 / this.pixelRatio),
+        y: (e - n) * this.scale * (1 / this.pixelRatio),
       }
     );
   }
@@ -444,10 +444,10 @@ export default class {
     );
   }
   getWidth() {
-    return this.renderer.renderer.width / window.devicePixelRatio;
+    return this.renderer.renderer.width / this.pixelRatio;
   }
   getHeight() {
-    return this.renderer.renderer.height / window.devicePixelRatio;
+    return this.renderer.renderer.height / this.pixelRatio;
   }
   onLightningZap(t) {
     this.renderLightning(t);

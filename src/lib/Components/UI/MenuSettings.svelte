@@ -1,5 +1,12 @@
 <script>
+    import { gameSettings } from "$lib/Engine/shared.svelte.js";
+
     let { game } = $props();
+
+    const DESC_BY_SETTING = {
+      deleteOldChat: "Delete old chat messages",
+      specialEffects: "Special effects"
+    }
 </script>
 
 {#if game.ui.isDisplayingMenu == "Settings"}
@@ -18,19 +25,34 @@
             onclick={() => game.ui.hideMenu()}>+</button
         >
         <h2 class="text-white mb-2">Settings</h2>
-        <div class="flex flex-row grow w-full p-2 bg-black/20 rounded-sm rounded-tl-none">
-            <button
-                class="h-10 p-2 rounded text-white transition bg-accent-red hover:brightness-125"
-                onclick={() => {
-                    game.ui.pendingPopups.push({
-                        type: "confirmation",
-                        message: "Reload the game? Changes you made may not be saved.",
-                        callback: () => {
-                            location.reload();
-                        },
-                    });
-                }}>Reload game</button
-            >
+        <div class="flex flex-col gap-4 grow w-full p-2 bg-black/20 rounded-sm rounded-tl-none">
+            <div class="flex flex-col">
+                <span class="text-xs uppercase text-white/70 mb-2">Settings</span>
+                {#each Object.keys(DESC_BY_SETTING) as setting}
+                    <div class="relative first:-mt-2">
+                        <input
+                            type="checkbox"
+                            bind:checked={gameSettings.state[setting]}
+                        />
+                        <span class="text-white ml-1 text-xs">{DESC_BY_SETTING[setting]}</span>
+                    </div>
+                {/each}
+            </div>
+            <div class="flex flex-col">
+                <span class="text-xs uppercase text-white/70 mb-2">Controls</span>
+                <button
+                    class="h-10 w-fit p-2 rounded text-white transition bg-accent-red hover:brightness-125"
+                    onclick={() => {
+                        game.ui.pendingPopups.push({
+                            type: "confirmation",
+                            message: "Reload the game? Changes you made may not be saved.",
+                            callback: () => {
+                                location.reload();
+                            },
+                        });
+                    }}>Reload game</button
+                >
+            </div>
         </div>
     </div>
 {/if}

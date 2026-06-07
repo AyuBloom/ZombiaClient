@@ -572,7 +572,7 @@
 
 {#snippet Buttons()}
     <div class="flex flex-col w-full gap-1">
-        {#if buildingId == "Factory" && gameOptions.mode != "scarcity"}
+        {#if buildingId == "Factory" && gameOptions.state.mode != "scarcity"}
             <button
                 class="{isLeader ? '' : 'disabled'} bg-accent-purple"
                 onclick={(t) => {
@@ -586,7 +586,7 @@
                 }}>Attack {aggro} enemies</button
             >
         {/if}
-        {#if buildingId == "Harvester"}
+        {#if buildingId == "Harvester" && gameOptions.state.mode != "scarcity"}
             <div class="flex flex-row w-full gap-1">
                 <button
                     onclick={(t) => purchaseHarvesterDrone(t)}

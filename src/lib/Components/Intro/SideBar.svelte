@@ -54,6 +54,7 @@
         <input
             type="text"
             class="hud-intro-name"
+            autocomplete="username"
             placeholder="Player name..."
             bind:value={gameOptions.state.playerName}
         />
@@ -85,7 +86,7 @@
             <div class="relative first:-mt-2">
                 <input
                     type="checkbox"
-                    onchange={location.reload()}
+                    onchange={() => { location.reload(); }}
                     bind:checked={gameOptions.state.needsRestart[setting]}
                 />
                 <span class="text-white ml-1 text-xs">{setting}</span>

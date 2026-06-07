@@ -1,4 +1,5 @@
 import Model from "./Model";
+import { gameSettings } from "$lib/Engine/shared.svelte.js";
 
 export default class extends Model {
   constructor(game) {
@@ -10,9 +11,10 @@ export default class extends Model {
   }
   update(t, e) {
     const r = this.getParent();
-    e &&
-      // (0 == this.game.settings.specialEffectsDisabled && this.updateDamageTint(e),
+    if (e) {
+      true == gameSettings.state.specialEffects && this.updateDamageTint(e);
       this.weaponUpdateFunc?.(e, r);
+    };
     super.update(t, e);
   }
   updateDamageTint(t) {

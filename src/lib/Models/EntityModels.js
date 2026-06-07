@@ -8,6 +8,8 @@ import TextNode from "./TextNode";
 import TowerModel from "./TowerModel";
 import GraphicsNode from "./GraphicsNode";
 
+import { gameSettings } from "$lib/Engine/shared.svelte";
+
 export default {
   Player: class extends PlayerModel {
     constructor(game) {
@@ -493,7 +495,7 @@ export default {
       }
     }
     onDie() {
-      // if (1 == this.game.settings.specialEffectsDisabled) return;
+      if (false == gameSettings.state.specialEffects) return;
       if (
         this.game.renderer.replicator.getMsSinceTick(
           this.game.renderer.replicator.currentTick.tick,
@@ -541,7 +543,7 @@ export default {
       this.addAttachment(this.base);
     }
     onDie() {
-      // if (1 == this.game.settings.specialEffectsDisabled) return;
+      if (false == gameSettings.state.specialEffects) return;
       if (
         this.game.renderer.replicator.getMsSinceTick(
           this.game.renderer.replicator.currentTick.tick,
