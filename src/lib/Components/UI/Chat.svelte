@@ -5,7 +5,7 @@
 
     let { game } = $props();
 
-    const MESSAGE_LIMIT = 2;
+    const MESSAGE_LIMIT = 500;
 
     let isTyping = $state(false);
 
@@ -35,6 +35,10 @@
         if (chatBox) {
             chatBox.scrollTop = chatBox.scrollHeight;
         }
+    });
+    game.eventEmitter.on("EnterWorldResponse", () => {
+        msgs = [];
+        seenMessages.clear();
     });
     game.eventEmitter.on("13Up", () => {
         if (isTyping) {

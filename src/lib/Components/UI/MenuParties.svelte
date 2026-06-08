@@ -218,7 +218,7 @@
                 class="transition text-white/60 hover:text-white hover:underline cursor-pointer text-sm flex items-center justify-center gap-1.5 font-medium"
                 onclick={() => invoke("open_instances_window")}
             >
-                Open in new window <span class="text-base font-semibold">↗</span>
+                Open in new window <span class="text-base font-bold">↗</span>
             </button>
         </div>
     {/if}

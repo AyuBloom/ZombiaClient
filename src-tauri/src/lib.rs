@@ -60,6 +60,15 @@ pub fn run() {
         .plugin(tauri_plugin_macos_fps::init())
         // .plugin(tauri_plugin_websocket::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
+        .on_window_event(|window, event| {
+            if let tauri::WindowEvent::Destroyed = event {
+                if window.label() == "main" {
+                    if let Some(instances_window) = window.get_webview_window("instances") {
+                        let _ = instances_window.close();
+                    }
+                }
+            }
+        })
         .invoke_handler(tauri::generate_handler![get_memory_usage, open_instances_window])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

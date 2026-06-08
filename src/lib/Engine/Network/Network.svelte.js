@@ -3,21 +3,20 @@ import { listen, emit } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 
 class GameInstance {
-  ping = $state();
-  connected = $state(false);
-  connecting = $state(false);
-
   constructor(game, id, name, partyKey, serverData) {
     this.game = game;
     this.id = id;
     this.name = name;
-    this.partyKey = partyKey;
+    this.partyKey = $state(partyKey);
     this.serverData = serverData;
-    
+
     this.socket = null;
     this.codec = new Codec(game);
     this.codec.instance = this;
 
+    this.ping = $state();
+    this.connected = $state(false);
+    this.connecting = $state(false);
     this.pingStart = null;
     this.pingCompletion = null;
     this.connectionAttempts = 0;
@@ -34,6 +33,22 @@ class GameInstance {
     this.partyMembers = $state([]);
     this.savedTools = null;
     this.enterWorldData = null;
+
+    // Recorded RPC states
+    this.partyBuildings = {};
+    this.partyRequests = {};
+    this.openParties = [];
+    this.leaderboard = [];
+    this.isDead = false;
+    this.deadData = null;
+    this.toolInfo = null;
+    this.buildingInfo = null;
+    this.spellInfo = null;
+    this.disabledSpells = {};
+    this.entityData = null;
+    this.chatHistory = [];
+    this.tickRate = null;
+    this.dayNightCycle = null;
   }
 
   connect() {
@@ -166,6 +181,22 @@ class GameInstance {
     this.codec.currentTickNumber = t.startingTick;
     this.enterWorldData = t;
 
+    // Reset tracked RPC states upon entering a new world
+    this.partyBuildings = {};
+    this.partyRequests = {};
+    this.openParties = [];
+    this.leaderboard = [];
+    this.isDead = false;
+    this.deadData = null;
+    this.toolInfo = null;
+    this.buildingInfo = null;
+    this.spellInfo = null;
+    this.disabledSpells = {};
+    this.entityData = null;
+    this.chatHistory = [];
+    this.tickRate = null;
+    this.dayNightCycle = null;
+
     if (isActive) {
       this.game.eventEmitter.emit("EnterWorldResponse", t);
     }
@@ -199,14 +230,61 @@ class GameInstance {
   }
 
   handleRpc(t, isActive) {
-    if (t.name === "PartyMembersUpdated") {
-      this.partyMembers = t.response;
-    }
-    if (t.name === "SetTool") {
-      this.savedTools = t.response;
-    }
+    // Record state/data for all stateful RPCs
     if (t.name === "PartyKey") {
       this.partyKey = t.response.partyKey;
+    } else if (t.name === "PartyBuilding") {
+      for (const b of t.response) {
+        if (b.dead) {
+          delete this.partyBuildings[b.uid];
+        } else {
+          this.partyBuildings[b.uid] = b;
+        }
+      }
+    } else if (t.name === "PartyRequest") {
+      this.partyRequests[t.response.uid] = t.response;
+    } else if (t.name === "PartyRequestCancelled") {
+      delete this.partyRequests[t.response.uid];
+    } else if (t.name === "PartyRequestMet") {
+      this.partyRequests = {};
+    } else if (t.name === "PartyMembersUpdated") {
+      this.partyMembers = t.response;
+    } else if (t.name === "UpdateParty") {
+      this.openParties = t.response;
+    } else if (t.name === "UpdateLeaderboard") {
+      this.leaderboard = t.response;
+    } else if (t.name === "Respawned") {
+      this.isDead = false;
+      this.deadData = null;
+    } else if (t.name === "SetTool") {
+      this.savedTools = t.response;
+    } else if (t.name === "Dead") {
+      this.isDead = true;
+      this.deadData = t.response;
+    } else if (t.name === "ToolInfo") {
+      this.toolInfo = t.response;
+    } else if (t.name === "BuildingInfo") {
+      this.buildingInfo = t.response;
+    } else if (t.name === "SpellInfo") {
+      this.spellInfo = t.response;
+    } else if (t.name === "CastSpellResponse") {
+      this.disabledSpells[t.response.name] = t.response;
+    } else if (t.name === "ClearActiveSpell") {
+      delete this.disabledSpells[t.response.name];
+    } else if (t.name === "EntityData") {
+      this.entityData = t.response;
+    } else if (t.name === "ReceiveChatMessage") {
+      this.chatHistory.push(t.response);
+      // don't think i should limit it here
+      /*
+      if (this.chatHistory.length > 500) {
+        this.chatHistory.shift();
+      }
+      */
+    } else if (t.name === "SetTickRate") {
+      this.tickRate = t.response;
+    } else if (t.name === "UpdateDayNightCycle") {
+      this.dayNightCycle = t.response;
     }
 
     if (isActive) {
@@ -293,10 +371,13 @@ export default class {
       this.broadcastState(true);
     });
 
-    listen("client-spawn-alt", () => {
+    listen("client-spawn-alt", (event) => {
       const active = this.activeInstance;
       if (active) {
-        this.createInstance(active.name, active.partyKey, active.serverData);
+        const name = (event.payload && event.payload.name) || active.name;
+        const serverData = (event.payload && event.payload.serverData) || active.serverData;
+        const partyKey = (event.payload && typeof event.payload.partyKey === "string") ? event.payload.partyKey : active.partyKey;
+        this.createInstance(name, partyKey, serverData);
       }
     });
 
@@ -400,7 +481,7 @@ export default class {
       }
       instance.unbindSocket();
       delete this.instances[id];
-      
+
       if (this.activeInstanceId === id) {
         const remainingIds = Object.keys(this.instances);
         if (remainingIds.length > 0) {
@@ -435,12 +516,67 @@ export default class {
     if (newInstance.enterWorldData) {
       this.game.eventEmitter.emit("EnterWorldResponse", newInstance.enterWorldData);
 
+      // Re-emit all recorded RPC states
+      if (newInstance.toolInfo) {
+        this.game.eventEmitter.emit("ToolInfoRpcReceived", newInstance.toolInfo);
+      }
+      if (newInstance.buildingInfo) {
+        this.game.eventEmitter.emit("BuildingInfoRpcReceived", newInstance.buildingInfo);
+      }
+      if (newInstance.spellInfo) {
+        this.game.eventEmitter.emit("SpellInfoRpcReceived", newInstance.spellInfo);
+      }
+      if (newInstance.entityData) {
+        this.game.eventEmitter.emit("EntityDataRpcReceived", newInstance.entityData);
+      }
+      if (newInstance.tickRate) {
+        this.game.eventEmitter.emit("SetTickRateRpcReceived", newInstance.tickRate);
+      }
+      if (newInstance.dayNightCycle) {
+        this.game.eventEmitter.emit("UpdateDayNightCycleRpcReceived", newInstance.dayNightCycle);
+      }
+      if (newInstance.partyKey) {
+        this.game.eventEmitter.emit("PartyKeyRpcReceived", { partyKey: newInstance.partyKey });
+      }
+      if (newInstance.partyMembers && newInstance.partyMembers.length > 0) {
+        this.game.eventEmitter.emit("PartyMembersUpdatedRpcReceived", newInstance.partyMembers);
+      }
+      if (Object.keys(newInstance.partyBuildings).length > 0) {
+        this.game.eventEmitter.emit("PartyBuildingRpcReceived", Object.values(newInstance.partyBuildings));
+      }
+      for (const req of Object.values(newInstance.partyRequests)) {
+        this.game.eventEmitter.emit("PartyRequestRpcReceived", req);
+      }
+      if (newInstance.openParties && newInstance.openParties.length > 0) {
+        this.game.eventEmitter.emit("UpdatePartyRpcReceived", newInstance.openParties);
+      }
+      if (newInstance.leaderboard && newInstance.leaderboard.length > 0) {
+        this.game.eventEmitter.emit("UpdateLeaderboardRpcReceived", newInstance.leaderboard);
+      }
       if (newInstance.savedTools) {
         this.game.eventEmitter.emit("SetToolRpcReceived", newInstance.savedTools);
       }
 
-      if (newInstance.partyMembers && newInstance.partyMembers.length > 0) {
-        this.game.eventEmitter.emit("PartyMembersUpdatedRpcReceived", newInstance.partyMembers);
+      // Handle death state
+      if (newInstance.isDead) {
+        this.game.eventEmitter.emit("DeadRpcReceived", newInstance.deadData);
+      } else {
+        this.game.eventEmitter.emit("RespawnedRpcReceived");
+      }
+
+      // Re-emit chat history
+      for (const msg of newInstance.chatHistory) {
+        this.game.eventEmitter.emit("ReceiveChatMessageRpcReceived", msg);
+      }
+
+      // Sync active/disabled spells
+      if (oldInstance) {
+        for (const spellName of Object.keys(oldInstance.disabledSpells)) {
+          this.game.eventEmitter.emit("ClearActiveSpellRpcReceived", { name: spellName });
+        }
+      }
+      for (const spell of Object.values(newInstance.disabledSpells)) {
+        this.game.eventEmitter.emit("CastSpellResponseRpcReceived", spell);
       }
 
       if (newInstance.playerTick) {
@@ -456,33 +592,41 @@ export default class {
   }
 
   async broadcastState(force = false) {
+    // throttling the unenforced broadcasts at 1s
+    // unsure if i want to add an option for this in the future
     const now = Date.now();
-    if (now - this.lastBroadcast < 200 && !force) return;
+    if (now - this.lastBroadcast < 1000 && !force) return;
     this.lastBroadcast = now;
 
     try {
       const appWindow = getCurrentWindow();
       const isHostVisible = await appWindow.isVisible();
 
-      const serialized = Object.values(this.instances).map(inst => ({
-        id: inst.id,
-        name: inst.name,
-        connected: inst.connected,
-        connecting: inst.connecting,
-        ping: inst.ping,
-        serverData: inst.serverData,
-        stats: inst.playerTick ? {
-          health: inst.playerTick.health,
-          maxHealth: inst.playerTick.maxHealth,
-          wood: inst.playerTick.wood,
-          stone: inst.playerTick.stone,
-          gold: inst.playerTick.gold,
-          tokens: inst.playerTick.tokens,
-          wave: inst.playerTick.wave,
-          zombieShieldHealth: inst.playerTick.zombieShieldHealth,
-          zombieShieldMaxHealth: inst.playerTick.zombieShieldMaxHealth,
-        } : null
-      }));
+      const serialized = Object.values(this.instances).map(inst => {
+        const playerScore = inst.leaderboard?.find(p => p.uid === inst.enterWorldData?.uid)?.score;
+        const scoreVal = playerScore ? (typeof playerScore.toNumber === "function" ? playerScore.toNumber() : Number(playerScore)) : 0;
+        return {
+          id: inst.id,
+          name: inst.name,
+          connected: inst.connected,
+          connecting: inst.connecting,
+          ping: inst.ping,
+          serverData: inst.serverData,
+          partyKey: inst.partyKey,
+          stats: inst.playerTick ? {
+            health: inst.playerTick.health,
+            maxHealth: inst.playerTick.maxHealth,
+            wood: inst.playerTick.wood,
+            stone: inst.playerTick.stone,
+            gold: inst.playerTick.gold,
+            tokens: inst.playerTick.tokens,
+            wave: inst.playerTick.wave,
+            zombieShieldHealth: inst.playerTick.zombieShieldHealth,
+            zombieShieldMaxHealth: inst.playerTick.zombieShieldMaxHealth,
+            score: scoreVal,
+          } : null
+        };
+      });
 
       emit("host-instances-update", {
         instances: serialized,

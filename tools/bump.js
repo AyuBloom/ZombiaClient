@@ -194,6 +194,21 @@ async function main() {
         process.exit(1);
     }
 
+    // 3.5. Update src/lib/id.json (CLIENT_VERSION)
+    if (fs.existsSync(idJsonPath)) {
+        console.log(`${colors.blue}📝 Updating src/lib/id.json (CLIENT_VERSION)...${colors.reset}`);
+        try {
+            const idJson = JSON.parse(fs.readFileSync(idJsonPath, 'utf8'));
+            idJson.CLIENT_VERSION = targetVersion;
+            fs.writeFileSync(idJsonPath, JSON.stringify(idJson, null, 2) + '\n', 'utf8');
+            console.log(`${colors.green}✔ Updated src/lib/id.json successfully.${colors.reset}`);
+        } catch (err) {
+            console.warn(`${colors.yellow}⚠ Warning: Failed to update src/lib/id.json:${colors.reset}`, err.message);
+        }
+    } else {
+        console.log(`${colors.dim}ℹ src/lib/id.json not found, skipping.${colors.reset}`);
+    }
+
     // 4. Update src-tauri/tauri.conf.json
     if (fs.existsSync(tauriConfPath)) {
         console.log(`${colors.blue}📝 Updating src-tauri/tauri.conf.json...${colors.reset}`);

@@ -83,7 +83,7 @@ export default new (class {
         event.preventDefault();
 
         const confirmed = await ask(
-          'Changes you made may not be saved.',
+          'Your instances will also close. If you only want to hide the game, go to Parties > Your Instances.',
           {
             title: "Leave game?",
             kind: "warning",
