@@ -11,7 +11,7 @@
 
 ## Introduction
 
-Milk Tea (stylized as MilkTea) is a project that aims to create an alternative client for the web-based survival game [zombia.io](https://zombia.io). A work in progress 🚧
+Milk Tea (stylized as MilkTea) is a project that aims to create an alternative client for the web-based survival game [zombia.io](https://zombia.io). **Now in v1.0.0! 🎉**
 
 ## Install
 Get the binaries from the [Releases](https://github.com/AyuBloom/MilkTea/releases/latest) page!
