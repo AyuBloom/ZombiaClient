@@ -4,6 +4,9 @@
     let resourceGains = $state({});
     let damages = $state({});
 
+    /** Tracks how many active indicators exist per entity uid for vertical stacking */
+    const activeResourceCountByUid = {};
+
     function showDamage(x, y, damage, duration, isScore = null) {
         const uuid = game.util.uuidv4();
 
@@ -35,19 +38,30 @@
             entity.getPositionY(),
         );
 
+        // Assign a stable vertical offset based on how many indicators
+        // are already active for this entity
+        if (!activeResourceCountByUid[uid]) activeResourceCountByUid[uid] = 0;
+        const stackIndex = activeResourceCountByUid[uid];
+        activeResourceCountByUid[uid]++;
+
         const uuid = game.util.uuidv4();
 
         resourceGains[uuid] = {
             gain: delta,
             type,
             position: {
-                x: position.x, // s.x - i.offsetWidth / 2,
-                y: position.y, // s.y - i.offsetHeight - 70 + 16 * Object.keys(this.resourceGainElems).length
+                x: position.x,
+                y: position.y,
             },
+            stackOffset: stackIndex,
         };
 
         setTimeout(() => {
             delete resourceGains[uuid];
+            activeResourceCountByUid[uid]--;
+            if (activeResourceCountByUid[uid] <= 0) {
+                delete activeResourceCountByUid[uid];
+            }
         }, 250);
     }
 
@@ -95,17 +109,17 @@
 </script>
 
 <div>
-    {#each Object.values(resourceGains) as { gain, type, position }, i}
+    {#each Object.entries(resourceGains) as [uuid, { gain, type, position, stackOffset }] (uuid)}
         <p
             class="pip -translate-x-1/2 -translate-y-full text-white"
-            style="left: {position.x}px; top: {position.y - 65 + 16 * i}px"
+            style="left: {position.x}px; top: {position.y - 65 + 16 * stackOffset}px"
         >
             {gain > 0 ? "+" + gain.toLocaleString() : gain.toLocaleString()}
             {type}
         </p>
     {/each}
 
-    {#each Object.values(damages) as { damage, position, isScore }}
+    {#each Object.entries(damages) as [uuid, { damage, position, isScore }] (uuid)}
         <p
             class="pip -translate-x-1/2 -translate-y-full {isScore ? "text-accent-gold" : "text-accent-red"}"
             style="left: {position.x}px; top: {position.y - 10}px"

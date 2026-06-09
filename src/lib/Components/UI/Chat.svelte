@@ -18,18 +18,12 @@
     let msg = $state("");
     let channel = $state(0);
 
-    // Keep track of active message contents
-    const seenMessages = new Set();
 
     game.eventEmitter.on("ReceiveChatMessageRpcReceived", async (t) => {
-        if (seenMessages.has(t.message)) return;
-
-        seenMessages.add(t.message);
         msgs.push({ ...t, date: Date.now() });
         // Limit to 500 if the toggle is enabled
         if (gameSettings.state.deleteOldChat && msgs.length > MESSAGE_LIMIT) {
-            const removed = msgs.shift();
-            removed && seenMessages.delete(removed.message);
+            msgs.shift();
         }
         await tick();
         if (chatBox) {
@@ -38,7 +32,6 @@
     });
     game.eventEmitter.on("EnterWorldResponse", () => {
         msgs = [];
-        seenMessages.clear();
     });
     game.eventEmitter.on("13Up", () => {
         if (isTyping) {
@@ -69,11 +62,6 @@
         if (gameSettings.state.deleteOldChat && msgs.length > MESSAGE_LIMIT) {
             // keep only the latest 500 messages
             msgs = msgs.slice(-MESSAGE_LIMIT);
-            // rebuild so it only contains active message contents
-            seenMessages.clear();
-            for (const m of msgs) {
-                seenMessages.add(m.message);
-            }
         }
     });
 

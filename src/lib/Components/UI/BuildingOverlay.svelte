@@ -296,15 +296,17 @@
                 );
                 harvesterSelectorModel.setVisible(true);
                 const i = game.renderer.world.entities[t.targetTick.targetResourceUid];
-                null == i
-                    ? harvesterSelectorModel.setPosition(
+                if (null == i) {
+                    harvesterSelectorModel.setPosition(
                           t.getPositionX(),
                           t.getPositionY(),
                       )
-                    : harvesterSelectorModel.setPosition(
-                          i.getPositionX(),
-                          i.getPositionY(),
-                      );
+                } else {
+                    harvesterSelectorModel.setPosition(
+                        i.getPositionX(),
+                        i.getPositionY(),
+                    );
+                }
                 if (displayingHarvesterRange) {
                     const t = game.renderer.scenery;
                     for (const r of t.attachments) {
