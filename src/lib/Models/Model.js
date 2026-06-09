@@ -39,6 +39,7 @@ export default class extends Node {
   setParent(t) {
     if (null == t && this.constructor.isPoolable) {
       this.parent = null;
+      this.removedParentFunction();
       this.recycle();
     } else {
       super.setParent(t);

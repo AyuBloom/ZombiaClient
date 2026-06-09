@@ -75,7 +75,17 @@ class GameInstance {
       this.socket.onopen = null;
       this.socket.onmessage = null;
       this.socket.onclose = null;
+      this.socket = null;
     }
+  }
+
+  destroy() {
+    this.unbindSocket();
+    if (this.codec) {
+      this.codec.instance = null;
+      this.codec = null;
+    }
+    this.game = null;
   }
 
   rebindSocket() {
@@ -275,12 +285,9 @@ class GameInstance {
       this.entityData = t.response;
     } else if (t.name === "ReceiveChatMessage") {
       this.chatHistory.push(t.response);
-      // don't think i should limit it here
-      /*
       if (this.chatHistory.length > 500) {
         this.chatHistory.shift();
       }
-      */
     } else if (t.name === "SetTickRate") {
       this.tickRate = t.response;
     } else if (t.name === "UpdateDayNightCycle") {
@@ -357,6 +364,7 @@ export default class {
   constructor(game) {
     this.game = game;
     this.hostWindowVisible = true;
+    this.instancesWindowOpen = false;
   }
 
   isWindowVisible() {
@@ -368,6 +376,7 @@ export default class {
 
     // Set up Tauri IPC communication
     listen("client-ready", () => {
+      this.instancesWindowOpen = true;
       this.broadcastState(true);
     });
 
@@ -413,6 +422,30 @@ export default class {
         this.activeInstance.codec.setSync(this.isWindowVisible());
       }
       this.broadcastState(true);
+    });
+
+    listen("instances-closed", async () => {
+      this.instancesWindowOpen = false;
+      const appWindow = getCurrentWindow();
+      const isVisible = await appWindow.isVisible();
+      if (!isVisible) {
+        await appWindow.show();
+        await appWindow.setFocus();
+        this.hostWindowVisible = true;
+        this.game.renderer.skipRendering = false;
+
+        // Wait for the Webview layout reflow to complete, then trigger resize to restore WebGL canvas
+        setTimeout(() => {
+          if (this.game.renderer && typeof this.game.renderer.onWindowResize === "function") {
+            this.game.renderer.onWindowResize();
+          }
+        }, 100);
+
+        if (this.activeInstance) {
+          this.activeInstance.codec.setSync(this.isWindowVisible());
+        }
+        this.broadcastState(true);
+      }
     });
   }
 
@@ -479,7 +512,7 @@ export default class {
       if (instance.socket) {
         instance.socket.close();
       }
-      instance.unbindSocket();
+      instance.destroy();
       delete this.instances[id];
 
       if (this.activeInstanceId === id) {
@@ -592,6 +625,8 @@ export default class {
   }
 
   async broadcastState(force = false) {
+    if (!this.instancesWindowOpen) return;
+
     // throttling the unenforced broadcasts at 1s
     // unsure if i want to add an option for this in the future
     const now = Date.now();

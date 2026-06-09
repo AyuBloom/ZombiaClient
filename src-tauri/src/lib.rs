@@ -1,6 +1,6 @@
 use std::sync::Mutex;
 use sysinfo::{get_current_pid, ProcessesToUpdate, System};
-use tauri::Manager;
+use tauri::{Emitter, Manager};
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 
@@ -66,6 +66,8 @@ pub fn run() {
                     if let Some(instances_window) = window.get_webview_window("instances") {
                         let _ = instances_window.close();
                     }
+                } else if window.label() == "instances" {
+                    let _ = window.app_handle().emit("instances-closed", ());
                 }
             }
         })

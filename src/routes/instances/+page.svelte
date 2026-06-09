@@ -1,5 +1,5 @@
 <script>
-    import { onMount } from "svelte";
+    import { onDestroy, onMount } from "svelte";
     import { emit, listen } from "@tauri-apps/api/event";
     import servers from "$lib/Assets/servers.json";
 

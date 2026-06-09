@@ -10,6 +10,14 @@ export default class {
     for (let t = 0; t < this.totalCells; t++) this.cellEntities[t] = {};
     game.eventEmitter.on("EntityDataRpcReceived", this.onEntityData.bind(this));
   }
+  reset(t, e) {
+    this.cellEntities = [];
+    this.entityMap = {};
+    this.columns = t / this.cellSize;
+    this.rows = e / this.cellSize;
+    this.totalCells = this.columns * this.rows;
+    for (let t = 0; t < this.totalCells; t++) this.cellEntities[t] = {};
+  }
   getEntitiesInCell(t) {
     return t in this.cellEntities && this.cellEntities[t];
   }

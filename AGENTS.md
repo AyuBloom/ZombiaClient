@@ -1,4 +1,4 @@
-# Bamboo
+# MilkTea
 
 This project is a native client for a game called zombia.io, made with Tauri.
 
@@ -31,7 +31,7 @@ Compares versions of `app.js` located in the `./archive` directory using `git di
 
 ## Project Structure
 ```
-Bamboo/
+MilkTea/
 ├── src/                                # 
 │   ├── app.css                         # 
 │   ├── app.html                        # 

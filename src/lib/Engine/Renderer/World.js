@@ -6,8 +6,11 @@ export default class {
     this.game = game;
     this.entities = {};
     this.localPlayer = null;
+    this.hasInitialized = false;
   }
   init() {
+    if (this.hasInitialized) return;
+    this.hasInitialized = true;
     this.game.eventEmitter.on(
       "EnterWorldResponse",
       this.onEnterWorld.bind(this),
@@ -29,7 +32,11 @@ export default class {
     for (let t in this.entities) this.removeEntity(t, !1);
     this.entities = {};
     this.localPlayer = t.uid;
-    this.entityGrid = new EntityGrid(this.game, t.x, t.y);
+    if (this.entityGrid) {
+      this.entityGrid.reset(t.x, t.y);
+    } else {
+      this.entityGrid = new EntityGrid(this.game, t.x, t.y);
+    }
   }
   onRendererTick(t) {
     if (0 == this.game.network.connected) return;

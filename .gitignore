@@ -15,7 +15,7 @@ vite.config.ts.timestamp-*
 /unpacked
 
 static/images-backup/
+icons-old/
 
 # Build output
 /dist
-

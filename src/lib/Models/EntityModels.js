@@ -491,7 +491,7 @@ export default {
       if (e) {
         this.currentRotation += (540 * t) / 1e3;
         this.currentRotation %= 360;
-        this.base.setRotation(this.currentRotation);
+        this.setRotation(this.currentRotation);
       }
     }
     onDie() {
@@ -534,6 +534,7 @@ export default {
 
     constructor(game, t) {
       super(game);
+      this.projectileKind = t.projectileKind || "Rocket";
       this.tier = t.tier;
       this.currentRotation = 0;
       this.base = new SpriteNode(

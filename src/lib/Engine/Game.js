@@ -131,6 +131,6 @@ export default new (class {
     for (const kind of kinds) {
       this.poolModel(EntityModels.Projectile, { projectileKind: kind }, 50);
     }
-    this.poolModel(EntityModels.RocketProjectile, { tier: 1 }, 50);
+    this.poolModel(EntityModels.RocketProjectile, { tier: 1, projectileKind: "Rocket" }, 50);
   }
 })();

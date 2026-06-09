@@ -33,8 +33,7 @@ export default class {
   setParent(t) {
     if (null == t) {
       if (void 0 !== this.currentModel) {
-        this.currentModel.removedParentFunction?.();
-        for (const t of this.currentModel.attachments) t.setParent(null);
+        this.currentModel.setParent(null);
       }
       for (const t of this.attachments) t.setParent(null);
     }
