@@ -57,10 +57,13 @@ export default class {
     const n = [];
     for (let i = -r.width / 2 + 0.5; i < r.width / 2; i++)
       for (let o = -r.height / 2 + 0.5; o < r.height / 2; o++) {
-        const r =
-          this.columns * Math.floor(e / this.cellSize + o) +
-          Math.floor(t / this.cellSize + i);
-        n.push(r >= 0 && r < this.totalCells && r);
+        const col = Math.floor(t / this.cellSize + i);
+        const row = Math.floor(e / this.cellSize + o);
+        if (col >= 0 && col < this.columns && row >= 0 && row < this.rows) {
+          n.push(row * this.columns + col);
+        } else {
+          n.push(false);
+        }
       }
     return n;
   }

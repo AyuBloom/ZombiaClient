@@ -165,28 +165,41 @@ export default class {
         height: o,
       }),
       a = r.entityGrid.cellSize;
-    let c = {
-      x: 0,
-      y: 0,
-    };
-    for (let t in s) {
-      if (!s[t]) {
-        this.placeholderTints[t].setVisible(!1);
+
+    const centerX = Math.floor(n.x / a + (i % 2 === 0 ? 0.5 : 0)) - (i % 2 === 0 ? 0.5 : 0);
+    const centerY = Math.floor(n.y / a + (o % 2 === 0 ? 0.5 : 0)) - (o % 2 === 0 ? 0.5 : 0);
+
+    const leftColumn = centerX - (i - 1) / 2;
+    const topRow = centerY - (o - 1) / 2;
+
+    for (let t = 0; t < s.length; t++) {
+      const col = Math.floor(t / o);
+      const row = t % o;
+      const cellX = leftColumn + col;
+      const cellY = topRow + row;
+
+      if (s[t] === false) {
+        this.placeholderTints[t].setVisible(false);
         continue;
       }
-      const e = r.entityGrid.getCellCoords(s[t]);
-      let n = {
-        x: e.x * a + a / 2,
-        y: e.y * a + a / 2,
+
+      const e_coords = { x: cellX, y: cellY };
+      let n_pos = {
+        x: e_coords.x * a + a / 2,
+        y: e_coords.y * a + a / 2,
       };
-      const i = this.game.renderer.worldToUi(n.x, n.y),
-        o = this.checkIsOccupied(s[t], e);
-      this.placeholderTints[t].setPosition(i.x, i.y);
-      this.placeholderTints[t].setIsOccupied(o);
+      const i_ui = this.game.renderer.worldToUi(n_pos.x, n_pos.y),
+        o_occupied = this.checkIsOccupied(s[t], e_coords);
+      this.placeholderTints[t].setPosition(i_ui.x, i_ui.y);
+      this.placeholderTints[t].setIsOccupied(o_occupied);
       this.placeholderTints[t].setVisible(true);
-      ((c.x += e.x), (c.y += e.y));
     }
-    ((c.x = c.x / s.length), (c.y = c.y / s.length));
+
+    let c = {
+      x: centerX,
+      y: centerY,
+    };
+
     let l = {
         x: c.x * a + a / 2,
         y: c.y * a + a / 2,
@@ -277,8 +290,8 @@ export default class {
       x: 0,
       y: 0,
     };
-    for (let t in a) {
-      if (!a[t]) return false;
+    for (let t = 0; t < a.length; t++) {
+      if (a[t] === false) return false;
       const e = n.entityGrid.getCellCoords(a[t]);
       ((l.x += e.x), (l.y += e.y));
     }

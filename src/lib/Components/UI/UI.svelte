@@ -17,6 +17,7 @@
     import PipOverlay from "./PipOverlay.svelte";
     import AnnouncementOverlay from "./AnnouncementOverlay.svelte";
     import PopupOverlay from "./PopupOverlay.svelte";
+    import Reconnect from "./Reconnect.svelte";
 
     import { gameSettings } from "$lib/Engine/shared.svelte";
     import MenuSettings from "./MenuSettings.svelte";
@@ -24,15 +25,28 @@
     let { game } = $props();
 
     gameSettings.start();
-
     window.gameSettings = gameSettings;
 
-    $effect(() => {
-        gameSettings.state && gameSettings.save();
+    let screenshotMode = $state(false);
+
+    game.eventEmitter.on("191Up", (e) => {
+        const isInputField = e.target && (
+            e.target.tagName === "INPUT" ||
+            e.target.tagName === "TEXTAREA" ||
+            e.target.tagName === "SELECT" ||
+            e.target.isContentEditable
+        );
+        if (isInputField) return;
+
+        if (e.shiftKey) {
+            e.preventDefault();
+            screenshotMode = !screenshotMode;
+        }
     });
+
 </script>
 
-<div class="hud absolute w-full h-full z-20">
+<div class="hud absolute w-full h-full z-20 {screenshotMode ? 'hidden' : ''}">
     <!-- Top -->
     <Chat {game} />
     <MenuIcons {game} />
@@ -65,4 +79,5 @@
 
     <DayNightOverlay {game} />
     <Respawn {game} />
+    <Reconnect {game} />
 </div>

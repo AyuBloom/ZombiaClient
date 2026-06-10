@@ -29,7 +29,12 @@
     }
 
     game.eventEmitter.once("EnterWorldResponse", (e) => {
-        e.allowed && (inGame = true);
+        if (e.allowed) {
+          inGame = true;
+          if (!gameOptions.state.savedNames.find((name) => name === e.name)) {
+            e.name !== "Player" && gameOptions.state.savedNames.push(e.name);
+          };
+        }
     });
 
     /* will try this when... i have time
@@ -46,9 +51,6 @@
 
     window.gameOptions = gameOptions;
     gameOptions.start();
-    $effect(() => {
-        gameOptions.state && gameOptions.save();
-    });
 
     $effect(() => {
         // if user pastes in a link, the input box will still take it
